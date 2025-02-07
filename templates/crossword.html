@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Mots Croisés</title>
+    <title>Crossword</title>
     <style>
         #grid-container {
             display: flex;
@@ -17,25 +17,22 @@
     </style>
 </head>
 <body>
-    <h1>Grille de Mots Croisés</h1>
+    <h1>Crossword Grid</h1>
     <div id="grid-container">
         <div id="crossword">
             {{ crossword|safe }}
         </div>
         <div id="definitions">
-            <h3>Définitions :</h3>
-            <h4>Horizontaux :</h4>
-            <ul>
+            <h3>Definitions:</h3>
+            <h4>Horizontal</h4>
                 {% for word, definition in definitions_h.items() %}
-                    <li><strong>{{ word }} :</strong> {{ definition }}</li>
+                    <strong>{{ word }}</strong> {{ definition }} <br>
                 {% endfor %}
-            </ul>
-            <h4>Verticaux :</h4>
-            <ul>
+
+            <h4>Vertical</h4>
                 {% for word, definition in definitions_v.items() %}
-                    <li><strong>{{ word }} :</strong> {{ definition }}</li>
+                <strong>{{ word }}</strong> {{ definition }} <br>
                 {% endfor %}
-            </ul>
         </div>
     </div>
 </body>

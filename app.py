@@ -185,10 +185,18 @@ def crossword():
     html_grid = generate_html(grid)
     definitions = get_def_from_db(placed_words)
     
-    definitions_h = {word: definitions[word] for word in placed_words if word in definitions and word_directions[word] == 'H'}
-    definitions_v = {word: definitions[word] for word in placed_words if word in definitions and word_directions[word] == 'V'}
+    # Associer les définitions avec le numéro du mot dans la légende
+    definitions_h = {f"{word_count}.": definitions[word] 
+                     for word, word_count in zip(placed_words, range(1, len(placed_words) + 1)) 
+                     if word_directions[word] == 'H'}
     
-    return render_template("crossword.html", crossword=html_grid, definitions_h=definitions_h, definitions_v=definitions_v)
+    definitions_v = {f"{word_count}.": definitions[word] 
+                     for word, word_count in zip(placed_words, range(1, len(placed_words) + 1)) 
+                     if word_directions[word] == 'V'}
+    
+    return render_template("crossword.html", crossword=html_grid, 
+                           definitions_h=definitions_h, definitions_v=definitions_v)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
