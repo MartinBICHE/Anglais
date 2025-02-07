@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mots Croisés</title>
+    <style>
+        #grid-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        #crossword {
+            margin-right: 20px;
+        }
+        #definitions {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Grille de Mots Croisés</h1>
+    <div id="grid-container">
+        <div id="crossword">
+            {{ crossword|safe }}
+        </div>
+        <div id="definitions">
+            <h3>Définitions :</h3>
+            <h4>Horizontaux :</h4>
+            <ul>
+                {% for word, definition in definitions_h.items() %}
+                    <li><strong>{{ word }} :</strong> {{ definition }}</li>
+                {% endfor %}
+            </ul>
+            <h4>Verticaux :</h4>
+            <ul>
+                {% for word, definition in definitions_v.items() %}
+                    <li><strong>{{ word }} :</strong> {{ definition }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
