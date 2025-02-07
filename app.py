@@ -17,10 +17,8 @@ def is_valid_position_for_word(grid, word, row, col, direction, crossing_positio
             if current_pos not in crossing_positions:
                 # Vérifier les voisins au-dessus et en-dessous
                 if row - 1 >= 0 and grid[row - 1][col + i] != ' ':
-                    print(1)
                     return False  # Voisin au-dessus
                 if row + 1 < size and grid[row + 1][col + i] != ' ':
-                    print(2)
                     return False  # Voisin en-dessous
         elif direction == 'V':
             current_pos = (row + i, col)
@@ -28,10 +26,8 @@ def is_valid_position_for_word(grid, word, row, col, direction, crossing_positio
             if current_pos not in crossing_positions:
                 # Vérifier les voisins à gauche et à droite
                 if col - 1 >= 0 and grid[row + i][col - 1] != ' ':
-                    print(5)
                     return False  # Voisin à gauche
                 if col + 1 < size and grid[row + i][col + 1] != ' ':
-                    print(6)
                     return False  # Voisin à droite
 
     return True
@@ -150,7 +146,9 @@ def generate_html(grid):
             cell = grid[row][col]
             # Ajouter une bordure si la case contient une lettre (non vide)
             if cell != ' ' and not cell.isdigit():
-                html += f"<td style='width: 40px; height: 40px; font-size: 20px; border: 1px solid black; background-color: lightgray;'>{cell}</td>"
+                html += f"<td style='width: 40px; height: 40px; font-size: 20px; border: 1px solid black; background-color: lightgray;'>" \
+                        f"<input type='text' maxlength='1' style='width: 30px; height: 30px; text-align: center;' />" \
+                        f"</td>"
             elif cell.isdigit():  # Si la case contient un numéro, ne pas ajouter de bordure
                 html += f"<td style='width: 40px; height: 40px; font-size: 20px; border: none;'>{cell}</td>"
             else:
