@@ -1,39 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crossword</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
         #grid-container {
             display: flex;
+            justify-content: center;
+            align-items: flex-start;
             margin-bottom: 20px;
         }
         #crossword {
-            margin-right: 20px;
+            margin-right: 40px;
         }
         #definitions {
-            font-family: Arial, sans-serif;
             max-width: 400px;
+            text-align: left;
+        }
+        h1 {
+            color: #333;
+        }
+        #validateButton {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #validateButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .message {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
         }
     </style>
 </head>
 <body>
-    <h1>Crossword Grid</h1>
+
+    <h1>Mots Croisés</h1>
+
+    {% if message %}
+        <div class="message {{ 'success' if 'Bravo' in message else 'error' }}">
+            {{ message|safe }}
+        </div>
+    {% endif %}
+
     <div id="grid-container">
         <div id="crossword">
             {{ crossword|safe }}
         </div>
         <div id="definitions">
-            <h3>Definitions:</h3>
+            <h3>Définitions :</h3>
             <h4>Horizontal</h4>
-                {% for word, definition in definitions_h.items() %}
-                    <strong>{{ word }}</strong> {{ definition }} <br>
-                {% endfor %}
+            {% for word, definition in definitions_h.items() %}
+                <strong>{{ word }}</strong> {{ definition }} <br>
+            {% endfor %}
 
             <h4>Vertical</h4>
-                {% for word, definition in definitions_v.items() %}
+            {% for word, definition in definitions_v.items() %}
                 <strong>{{ word }}</strong> {{ definition }} <br>
-                {% endfor %}
+            {% endfor %}
         </div>
     </div>
+
 </body>
 </html>

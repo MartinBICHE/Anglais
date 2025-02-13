@@ -1,8 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 import random
 
 app = Flask(__name__)
+app.secret_key = "crossword_secret_key"
 
 def create_empty_grid(size):
     return [[' ' for _ in range(size)] for _ in range(size)]
@@ -136,28 +137,68 @@ def generate_crossword(words, size=10):
     
     return grid, placed_words, word_directions
 
-def generate_html(grid):
-    html = "<table style='border-collapse: collapse; text-align: center;'>"
-    
-    # Parcours de la grille pour ajouter les bordures
+def generate_html(grid, user_answers=None, feedback_grid=None):
+    html = """
+    <script>
+        function checkInputs() {
+            let inputs = document.querySelectorAll("input[type='text']");
+            let button = document.getElementById("validateButton");
+            let allFilled = true;
+
+            inputs.forEach(input => {
+                if (input.value.trim() === "") {
+                    allFilled = false;
+                }
+            });
+
+            button.disabled = !allFilled;
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            let inputs = document.querySelectorAll("input[type='text']");
+            inputs.forEach(input => {
+                input.addEventListener("input", checkInputs);
+            });
+        });
+    </script>
+    """
+
+    html += "<form method='post' action='/validate'>"
+    html += "<table style='border-collapse: collapse; text-align: center;'>"
+
     for row in range(len(grid)):
         html += "<tr>"
         for col in range(len(grid[row])):
             cell = grid[row][col]
-            # Ajouter une bordure si la case contient une lettre (non vide)
+            cell_id = f"cell_{row}_{col}"  # Identifiant unique pour chaque case
+            
+            # Si des réponses utilisateur sont fournies, on les utilise
+            user_value = user_answers.get(cell_id, '') if user_answers else ''
+            color = ''
+            
+            # Appliquer les couleurs de feedback pour les bonnes/mauvaises réponses
+            if feedback_grid and feedback_grid[row][col] == 'correct':
+                color = 'background-color: lightgreen;'  # Bonne réponse
+            elif feedback_grid and feedback_grid[row][col] == 'incorrect':
+                color = 'background-color: lightcoral;'  # Mauvaise réponse
+
+            # Si ce n'est pas une case vide ou un numéro
             if cell != ' ' and not cell.isdigit():
                 html += f"<td style='width: 40px; height: 40px; font-size: 20px; border: 1px solid black; background-color: lightgray;'>" \
-                        f"<input type='text' maxlength='1' style='width: 30px; height: 30px; text-align: center;' />" \
+                        f"<input type='text' name='{cell_id}' maxlength='1' value='{user_value}' style='width: 30px; height: 30px; text-align: center; {color}' oninput='checkInputs()' />" \
                         f"</td>"
-            elif cell.isdigit():  # Si la case contient un numéro, ne pas ajouter de bordure
+            elif cell.isdigit():
                 html += f"<td style='width: 40px; height: 40px; font-size: 20px; border: none;'>{cell}</td>"
             else:
-                # Si la case est vide, ne pas ajouter de bordure
                 html += f"<td style='width: 40px; height: 40px; font-size: 20px;'>{cell if cell != ' ' else '&nbsp;'}</td>"
         html += "</tr>"
-    
+
     html += "</table>"
+    html += "<button id='validateButton' disabled type='submit'>Valider</button>"
+    html += "</form>"
+    
     return html
+
 
 def get_def_from_db(placed_words):
     definitions = {}
@@ -173,28 +214,104 @@ def get_def_from_db(placed_words):
 
 @app.route('/')
 def crossword():
-    con = sqlite3.connect('crossword_words.db')
-    cur = con.cursor()
-    cur.execute("SELECT word, def FROM words")
-    words = [{'word': row[0], 'def': row[1]} for row in cur.fetchall()]
-    con.close()
-    
-    grid, placed_words, word_directions = generate_crossword(words, size=20)
-    html_grid = generate_html(grid)
-    definitions = get_def_from_db(placed_words)
-    
-    # Associer les définitions avec le numéro du mot dans la légende
-    definitions_h = {f"{word_count}.": definitions[word] 
-                     for word, word_count in zip(placed_words, range(1, len(placed_words) + 1)) 
-                     if word_directions[word] == 'H'}
-    
-    definitions_v = {f"{word_count}.": definitions[word] 
-                     for word, word_count in zip(placed_words, range(1, len(placed_words) + 1)) 
-                     if word_directions[word] == 'V'}
-    
-    return render_template("crossword.html", crossword=html_grid, 
-                           definitions_h=definitions_h, definitions_v=definitions_v)
+    # Vérifier si une grille existe déjà en session
+    if "grid" in session and "placed_words" in session and "word_directions" in session:
+        grid = session["grid"]
+        placed_words = session["placed_words"]
+        word_directions = session["word_directions"]
+    else:
+        # Récupérer les mots depuis la base de données
+        with sqlite3.connect('crossword_words.db') as con:
+            cur = con.cursor()
+            cur.execute("SELECT word, def FROM words")
+            words = [{'word': row[0], 'def': row[1]} for row in cur.fetchall()]
 
+        # Générer une nouvelle grille
+        grid, placed_words, word_directions = generate_crossword(words, size=20)
+
+        # Stocker la grille en session
+        session["grid"] = grid
+        session["placed_words"] = placed_words
+        session["word_directions"] = word_directions
+
+    # Générer le HTML de la grille
+    html_grid = generate_html(grid)
+
+    # Récupérer les définitions des mots placés
+    definitions = get_def_from_db(placed_words)
+
+    # Trier les définitions par orientation
+    definitions_h, definitions_v = {}, {}
+    for index, word in enumerate(placed_words, start=1):
+        if word in word_directions:
+            (definitions_h if word_directions[word] == 'H' else definitions_v)[f"{index}."] = definitions.get(word, "Définition non trouvée")
+
+    return render_template("crossword.html", crossword=html_grid, definitions_h=definitions_h, definitions_v=definitions_v)
+
+@app.route('/validate', methods=['POST'])
+def validate():
+    # Vérifier si la grille existe déjà en session
+    if "grid" not in session or "placed_words" not in session or "word_directions" not in session:
+        return redirect('/')  # Si la grille n'existe pas, rediriger vers la création
+
+    grid = session["grid"]
+    placed_words = session["placed_words"]
+    word_directions = session["word_directions"]
+
+    # Récupérer les réponses utilisateur en majuscules
+    user_answers = {key: value for key, value in request.form.items()}
+    print(user_answers)
+
+    # Vérifier si toutes les réponses sont correctes
+    all_correct = True
+    feedback_grid = []  # Cette grille contiendra les couleurs à appliquer
+    compteur = 0  # Initialisation du compteur pour suivre l'index des réponses utilisateur
+
+    for row in range(len(grid)):
+        feedback_row = []  # Liste pour stocker les résultats de chaque ligne
+        for col in range(len(grid[row])):
+            cell_value = grid[row][col]
+            cell_id = f"cell_{row}_{col}"  # Identifiant de chaque case input
+
+            # Vérification de l'entrée utilisateur pour cette case
+            user_value = user_answers.get(cell_id, '')
+
+            if cell_value != ' ' and not cell_value.isdigit():  # Si c'est une case à remplir (pas un numéro)
+                if user_value.isalpha():  # Si l'entrée est une lettre
+                    if user_value == cell_value:
+                        feedback_row.append('correct')  # Bonne réponse
+                    else:
+                        feedback_row.append('incorrect')  # Mauvaise réponse
+                        all_correct = False
+                else:
+                    feedback_row.append('incorrect')  # Si ce n'est pas une lettre, on considère une mauvaise réponse
+                    all_correct = False
+            else:
+                feedback_row.append('')  # Case vide ou numéro, on ne fait rien ici
+
+            compteur += 1  # Incrémentation du compteur pour passer à la case suivante
+
+        feedback_grid.append(feedback_row)  # Ajouter la ligne de feedback à la grille
+
+    # Message de feedback
+    if all_correct:
+        message = "<h2 style='color: green;'>Bravo ! Toutes les réponses sont correctes 🎉</h2>"
+    else:
+        message = "<h2 style='color: red;'>Certaines réponses sont incorrectes. Essayez encore !</h2>"
+
+    # Générer une grille avec couleurs (correct ou incorrect)
+    html_grid = generate_html(grid, user_answers, feedback_grid)
+
+    # Récupérer les définitions des mots placés
+    definitions = get_def_from_db(placed_words)
+
+    # Trier les définitions par orientation
+    definitions_h, definitions_v = {}, {}
+    for index, word in enumerate(placed_words, start=1):
+        if word in word_directions:
+            (definitions_h if word_directions[word] == 'H' else definitions_v)[f"{index}."] = definitions.get(word, "Définition non trouvée")
+
+    return render_template("crossword.html", crossword=html_grid, message=message, definitions_h=definitions_h, definitions_v=definitions_v)
 
 if __name__ == "__main__":
     app.run(debug=True)
