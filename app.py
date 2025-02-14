@@ -16,20 +16,18 @@ def is_valid_position_for_word(grid, word, row, col, direction, crossing_positio
             current_pos = (row, col + i)
 
             if current_pos not in crossing_positions:
-                # Vérifier les voisins au-dessus et en-dessous
                 if row - 1 >= 0 and grid[row - 1][col + i] != ' ':
-                    return False  # Voisin au-dessus
+                    return False 
                 if row + 1 < size and grid[row + 1][col + i] != ' ':
-                    return False  # Voisin en-dessous
+                    return False 
         elif direction == 'V':
             current_pos = (row + i, col)
 
             if current_pos not in crossing_positions:
-                # Vérifier les voisins à gauche et à droite
                 if col - 1 >= 0 and grid[row + i][col - 1] != ' ':
-                    return False  # Voisin à gauche
+                    return False
                 if col + 1 < size and grid[row + i][col + 1] != ' ':
-                    return False  # Voisin à droite
+                    return False 
 
     return True
 
@@ -42,7 +40,6 @@ def find_valid_intersections(grid, word):
             if grid[row][col] in word:
                 char_index = word.index(grid[row][col])
                 
-                # Vérifier la position horizontale possible
                 start_col = col - char_index
                 if start_col > 0 and start_col + len(word) < size - 1:
                     crossing_positions = []
@@ -53,7 +50,6 @@ def find_valid_intersections(grid, word):
                                     crossing_positions.append((row, start_col + i))
                             intersections.append((row, start_col, 'H', crossing_positions))
 
-                # Vérifier la position verticale possible
                 start_row = row - char_index
                 if start_row > 0 and start_row + len(word) < size - 1:
                     crossing_positions = []
@@ -69,12 +65,10 @@ def find_valid_intersections(grid, word):
 def place_word_with_number(grid, word, row, col, direction, number):
     """Place un mot dans la grille avec un numéro à la première case."""
     if direction == 'H':
-        # Placer le mot horizontalement
         grid[row][col - 1] = str(number)
         for i in range(len(word)):
             grid[row][col + i] = word[i]
     else:
-        # Placer le mot verticalement
         grid[row - 1][col] = str(number)
         for i in range(len(word)):
             grid[row + i][col] = word[i]
@@ -83,57 +77,49 @@ def generate_crossword(words, size=10):
     grid = create_empty_grid(size)
     placed_words = []
     word_directions = {}
-    word_count = 1  # Compteur pour l'ordre des mots
+    word_count = 1 
     
-    # Mélanger les mots à chaque exécution
     random.shuffle(words)
     
-    # Trouver un mot avec au moins 6 lettres
     first_word = None
     for word_data in words:
         if len(word_data['word']) >= 6:
-            first_word = words.pop(words.index(word_data))  # Retirer le mot de la liste
+            first_word = words.pop(words.index(word_data)) 
             break
     
     if not first_word:
-        return grid, placed_words, word_directions  # Si aucun mot de 6 lettres n'est trouvé, retourne une grille vide
+        return grid, placed_words, word_directions
     
     first_word_length = len(first_word['word'])
     
-    # Choisir aléatoirement entre horizontal (H) ou vertical (V)
     direction = random.choice(['H', 'V'])
     
-    # Calculer la position de départ en fonction de l'orientation
     if direction == 'H':
-        start_col = (size - first_word_length) // 2  # Positionnement centré horizontalement
+        start_col = (size - first_word_length) // 2
         row, col = size // 2, start_col
     else:
-        start_row = (size - first_word_length) // 2  # Positionnement centré verticalement
+        start_row = (size - first_word_length) // 2
         row, col = start_row, size // 2
 
-    # Vérifier si la position est valide avant de placer le mot
     if is_valid_position_for_word(grid, first_word['word'], row, col, direction, []):
         place_word_with_number(grid, first_word['word'], row, col, direction, word_count)
         placed_words.append(first_word['word'])
         word_directions[first_word['word']] = direction
-        word_count += 1  # Incrémenter le compteur
+        word_count += 1
     else:
-        # Si la position n'est pas valide, on peut essayer une autre position ou ignorer ce mot
-        pass  # Tu pourrais ici essayer une autre position aléatoire ou simplement ignorer ce mot
+        pass
 
-    # Pour les mots suivants, vérifie leur position avant de les placer
     for word_data in words:
         word = word_data['word']
         intersections = find_valid_intersections(grid, word)
         if intersections:
-            # Vérifier les intersections disponibles et leur validité
             for row, col, direction, crossing_positions in intersections:
                 if is_valid_position_for_word(grid, word, row, col, direction, crossing_positions):
                     place_word_with_number(grid, word, row, col, direction, word_count)
                     placed_words.append(word)
                     word_directions[word] = direction
-                    word_count += 1  # Incrémenter le compteur
-                    break  # On peut arrêter dès qu'un mot valide est placé
+                    word_count += 1
+                    break
     
     return grid, placed_words, word_directions
 
@@ -170,19 +156,16 @@ def generate_html(grid, user_answers=None, feedback_grid=None):
         html += "<tr>"
         for col in range(len(grid[row])):
             cell = grid[row][col]
-            cell_id = f"cell_{row}_{col}"  # Identifiant unique pour chaque case
+            cell_id = f"cell_{row}_{col}"
             
-            # Si des réponses utilisateur sont fournies, on les utilise
             user_value = user_answers.get(cell_id, '') if user_answers else ''
             color = ''
             
-            # Appliquer les couleurs de feedback pour les bonnes/mauvaises réponses
             if feedback_grid and feedback_grid[row][col] == 'correct':
-                color = 'background-color: lightgreen;'  # Bonne réponse
+                color = 'background-color: lightgreen;'
             elif feedback_grid and feedback_grid[row][col] == 'incorrect':
-                color = 'background-color: lightcoral;'  # Mauvaise réponse
+                color = 'background-color: lightcoral;'
 
-            # Si ce n'est pas une case vide ou un numéro
             if cell != ' ' and not cell.isdigit():
                 html += f"<td style='width: 40px; height: 40px; font-size: 20px; border: 1px solid black; background-color: lightgray;'>" \
                         f"<input type='text' name='{cell_id}' maxlength='1' value='{user_value}' style='width: 30px; height: 30px; text-align: center; {color}' oninput='checkInputs()' />" \
@@ -214,33 +197,26 @@ def get_def_from_db(placed_words):
 
 @app.route('/')
 def crossword():
-    # Vérifier si une grille existe déjà en session
     if "grid" in session and "placed_words" in session and "word_directions" in session:
         grid = session["grid"]
         placed_words = session["placed_words"]
         word_directions = session["word_directions"]
     else:
-        # Récupérer les mots depuis la base de données
         with sqlite3.connect('crossword_words.db') as con:
             cur = con.cursor()
             cur.execute("SELECT word, def FROM words")
             words = [{'word': row[0], 'def': row[1]} for row in cur.fetchall()]
 
-        # Générer une nouvelle grille
         grid, placed_words, word_directions = generate_crossword(words, size=20)
 
-        # Stocker la grille en session
         session["grid"] = grid
         session["placed_words"] = placed_words
         session["word_directions"] = word_directions
 
-    # Générer le HTML de la grille
     html_grid = generate_html(grid)
 
-    # Récupérer les définitions des mots placés
     definitions = get_def_from_db(placed_words)
 
-    # Trier les définitions par orientation
     definitions_h, definitions_v = {}, {}
     for index, word in enumerate(placed_words, start=1):
         if word in word_directions:
@@ -250,62 +226,54 @@ def crossword():
 
 @app.route('/validate', methods=['POST'])
 def validate():
-    # Vérifier si la grille existe déjà en session
     if "grid" not in session or "placed_words" not in session or "word_directions" not in session:
-        return redirect('/')  # Si la grille n'existe pas, rediriger vers la création
+        return redirect('/')
 
     grid = session["grid"]
     placed_words = session["placed_words"]
     word_directions = session["word_directions"]
 
-    # Récupérer les réponses utilisateur en majuscules
     user_answers = {key: value for key, value in request.form.items()}
     print(user_answers)
 
-    # Vérifier si toutes les réponses sont correctes
     all_correct = True
-    feedback_grid = []  # Cette grille contiendra les couleurs à appliquer
-    compteur = 0  # Initialisation du compteur pour suivre l'index des réponses utilisateur
+    feedback_grid = []
+    compteur = 0
 
     for row in range(len(grid)):
-        feedback_row = []  # Liste pour stocker les résultats de chaque ligne
+        feedback_row = []
         for col in range(len(grid[row])):
             cell_value = grid[row][col]
-            cell_id = f"cell_{row}_{col}"  # Identifiant de chaque case input
+            cell_id = f"cell_{row}_{col}"
 
-            # Vérification de l'entrée utilisateur pour cette case
             user_value = user_answers.get(cell_id, '')
 
-            if cell_value != ' ' and not cell_value.isdigit():  # Si c'est une case à remplir (pas un numéro)
-                if user_value.isalpha():  # Si l'entrée est une lettre
+            if cell_value != ' ' and not cell_value.isdigit():
+                if user_value.isalpha():
                     if user_value == cell_value:
-                        feedback_row.append('correct')  # Bonne réponse
+                        feedback_row.append('correct')
                     else:
-                        feedback_row.append('incorrect')  # Mauvaise réponse
+                        feedback_row.append('incorrect')
                         all_correct = False
                 else:
-                    feedback_row.append('incorrect')  # Si ce n'est pas une lettre, on considère une mauvaise réponse
+                    feedback_row.append('incorrect')
                     all_correct = False
             else:
-                feedback_row.append('')  # Case vide ou numéro, on ne fait rien ici
+                feedback_row.append('')
 
-            compteur += 1  # Incrémentation du compteur pour passer à la case suivante
+            compteur += 1
 
-        feedback_grid.append(feedback_row)  # Ajouter la ligne de feedback à la grille
+        feedback_grid.append(feedback_row)  
 
-    # Message de feedback
     if all_correct:
         message = "<h2 style='color: green;'>Bravo ! Toutes les réponses sont correctes 🎉</h2>"
     else:
         message = "<h2 style='color: red;'>Certaines réponses sont incorrectes. Essayez encore !</h2>"
 
-    # Générer une grille avec couleurs (correct ou incorrect)
     html_grid = generate_html(grid, user_answers, feedback_grid)
 
-    # Récupérer les définitions des mots placés
     definitions = get_def_from_db(placed_words)
 
-    # Trier les définitions par orientation
     definitions_h, definitions_v = {}, {}
     for index, word in enumerate(placed_words, start=1):
         if word in word_directions:
