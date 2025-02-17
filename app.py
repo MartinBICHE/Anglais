@@ -120,6 +120,8 @@ def generate_crossword(words, size=10):
                     word_directions[word] = direction
                     word_count += 1
                     break
+
+    grid = clean_grid(grid)
     
     return grid, placed_words, word_directions
 
@@ -168,7 +170,7 @@ def generate_html(grid, user_answers=None, feedback_grid=None):
 
             if cell != ' ' and not cell.isdigit():
                 html += f"<td style='width: 40px; height: 40px; font-size: 20px; border: 1px solid black; background-color: lightgray;'>" \
-                        f"<input type='text' name='{cell_id}' maxlength='1' value='{user_value}' style='width: 30px; height: 30px; text-align: center; {color}' oninput='checkInputs()' />" \
+                        f"<input type='text' name='{cell_id}' maxlength='1' value='{user_value}' style='width: 30px; height: 30px; text-align: center; {color} font-size: 20px;' oninput='checkInputs()' />" \
                         f"</td>"
             elif cell.isdigit():
                 html += f"<td style='width: 40px; height: 40px; font-size: 20px; border: none;'>{cell}</td>"
@@ -177,11 +179,10 @@ def generate_html(grid, user_answers=None, feedback_grid=None):
         html += "</tr>"
 
     html += "</table>"
-    html += "<button id='validateButton' disabled type='submit'>Valider</button>"
+    html += "<button id='validateButton' disabled type='submit'>Validate</button>"
     html += "</form>"
     
     return html
-
 
 def get_def_from_db(placed_words):
     definitions = {}
@@ -195,13 +196,11 @@ def get_def_from_db(placed_words):
     
     return definitions
 
+grid, placed_words, word_directions = None, None, None
+
 @app.route('/')
 def crossword():
-    if "grid" in session and "placed_words" in session and "word_directions" in session:
-        grid = session["grid"]
-        placed_words = session["placed_words"]
-        word_directions = session["word_directions"]
-    else:
+    if "grid" not in session or "placed_words" not in session or "word_directions" not in session:
         with sqlite3.connect('crossword_words.db') as con:
             cur = con.cursor()
             cur.execute("SELECT word, def FROM words")
@@ -212,6 +211,10 @@ def crossword():
         session["grid"] = grid
         session["placed_words"] = placed_words
         session["word_directions"] = word_directions
+    else:
+        grid = session["grid"]
+        placed_words = session["placed_words"]
+        word_directions = session["word_directions"]
 
     html_grid = generate_html(grid)
 
@@ -234,11 +237,9 @@ def validate():
     word_directions = session["word_directions"]
 
     user_answers = {key: value for key, value in request.form.items()}
-    print(user_answers)
 
     all_correct = True
     feedback_grid = []
-    compteur = 0
 
     for row in range(len(grid)):
         feedback_row = []
@@ -261,25 +262,65 @@ def validate():
             else:
                 feedback_row.append('')
 
-            compteur += 1
-
         feedback_grid.append(feedback_row)  
 
     if all_correct:
-        message = "<h2 style='color: green;'>Bravo ! Toutes les réponses sont correctes 🎉</h2>"
+        message = "<h2 style='color: green;'>Congratulations! All answers are correct 🎉</h2>"
+        show_new_grid_button = True
     else:
-        message = "<h2 style='color: red;'>Certaines réponses sont incorrectes. Essayez encore !</h2>"
+        message = "<h2 style='color: red;'>Some answers are incorrect. Try again!</h2>"
+        show_new_grid_button = False
 
-    html_grid = generate_html(grid, user_answers, feedback_grid)
+    html_grid = generate_html(grid, user_answers, feedback_grid) if not all_correct else ""
 
     definitions = get_def_from_db(placed_words)
 
     definitions_h, definitions_v = {}, {}
     for index, word in enumerate(placed_words, start=1):
         if word in word_directions:
-            (definitions_h if word_directions[word] == 'H' else definitions_v)[f"{index}."] = definitions.get(word, "Définition non trouvée")
+            (definitions_h if word_directions[word] == 'H' else definitions_v)[f"{index}."] = definitions.get(word, "Definition not found")
 
-    return render_template("crossword.html", crossword=html_grid, message=message, definitions_h=definitions_h, definitions_v=definitions_v)
+    return render_template(
+        "crossword.html",
+        crossword=html_grid,
+        message=message,
+        definitions_h=definitions_h,
+        definitions_v=definitions_v,
+        show_new_grid_button=show_new_grid_button
+    )
+
+@app.route('/new_grid')
+def new_grid():
+    session.pop("grid", None)
+    session.pop("placed_words", None)
+    session.pop("word_directions", None)
+    return redirect('/')
+
+def clean_grid(grid):
+    while grid and all(cell == ' ' for cell in grid[0]):
+        grid.pop(0)
+
+    if grid:
+        empty_cols_left = set()
+        empty_cols_right = set()
+
+        for col in range(len(grid[0])):
+            if all(row[col] == ' ' for row in grid):
+                empty_cols_left.add(col)
+
+        for col in range(len(grid[0]) - 1, -1, -1):
+            if all(row[col] == ' ' for row in grid):
+                empty_cols_right.add(col)
+
+        grid = [
+            [cell for col, cell in enumerate(row) if col not in empty_cols_left and col not in empty_cols_right]
+            for row in grid
+        ]
+
+    while grid and all(cell == ' ' for cell in grid[-1]):
+        grid.pop()
+
+    return grid
 
 if __name__ == "__main__":
     app.run(debug=True)

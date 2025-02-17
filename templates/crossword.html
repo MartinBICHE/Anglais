@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +12,7 @@
         }
         #grid-container {
             display: flex;
-            justify-content: center;
+            justify-content: left;
             align-items: flex-start;
             margin-bottom: 20px;
         }
@@ -20,13 +20,13 @@
             margin-right: 40px;
         }
         #definitions {
-            max-width: 400px;
+            
             text-align: left;
         }
         h1 {
             color: #333;
         }
-        #validateButton {
+        #validateButton, #newGridButton {
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
@@ -51,35 +51,78 @@
         .error {
             color: red;
         }
+        #newGridButton {
+            background-color: #28a745;
+        }
+        .definitions-section {
+            padding: 10px;
+            border: 2px solid #ddd;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .horizontal-definitions::before {
+            content: 'Horizontal';
+            background-color: #cccccc;
+            color: white;
+            padding: 5px 10px;
+            font-weight: bold;
+            border-top-left-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            top: -7px;
+            left: -11px; 
+        }
+        .vertical-definitions::before {
+            content: 'Vertical';
+            background-color: #cccccc;
+            color: white;
+            padding: 5px 10px;
+            font-weight: bold;
+            border-top-left-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+            top: -7px;
+            left: -11px; 
+        }
     </style>
 </head>
 <body>
 
-    <h1>Mots Croisés</h1>
+    <h1>Crossword Puzzle</h1>
 
     {% if message %}
-        <div class="message {{ 'success' if 'Bravo' in message else 'error' }}">
+        <div class="message {{ 'success' if 'Congratulations' in message else 'error' }}">
             {{ message|safe }}
         </div>
     {% endif %}
 
-    <div id="grid-container">
-        <div id="crossword">
-            {{ crossword|safe }}
+    {% if show_new_grid_button %}
+        <button id="newGridButton" onclick="window.location.href='/new_grid'">Generate New Grid</button>
+    {% else %}
+        <div id="grid-container">
+            <div id="crossword">
+                {{ crossword|safe }}
+            </div>
+            <div id="definitions">
+                <h3>Definitions:</h3>
+<br>
+                <div class="definitions-section horizontal-definitions">
+                    <br>
+                    {% for word, definition in definitions_h.items() %}
+                        <strong>{{ word }}</strong> {{ definition }} <br>
+                    {% endfor %}
+                </div>
+<br>
+                <div class="definitions-section vertical-definitions">
+                    <br>
+                    {% for word, definition in definitions_v.items() %}
+                        <strong>{{ word }}</strong> {{ definition }} <br>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
-        <div id="definitions">
-            <h3>Définitions :</h3>
-            <h4>Horizontal</h4>
-            {% for word, definition in definitions_h.items() %}
-                <strong>{{ word }}</strong> {{ definition }} <br>
-            {% endfor %}
-
-            <h4>Vertical</h4>
-            {% for word, definition in definitions_v.items() %}
-                <strong>{{ word }}</strong> {{ definition }} <br>
-            {% endfor %}
-        </div>
-    </div>
+    {% endif %}
 
 </body>
 </html>
