@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu de Jeu - Modes</title>
+    <style>
+        /* Style pour la page */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #cccccc;
+            color: white;
+        }
+
+        .mode-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            color: black;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 5px 15px;
+            border-radius: 10px;
+        }
+
+        .carousel-container {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            overflow: hidden;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .carousel {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .mode {
+            min-width: 100%;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            background-size: cover;
+            background-position: center;
+            color: transparent;
+        }
+
+        .controls {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+
+        .arrow {
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .arrow:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .play-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .play-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mode-title">Sélectionner un Mode de Jeu</div>
+
+    <div class="carousel-container">
+        <div class="carousel">
+            <div class="mode" style="background-image: url('../static/pictures/crossword.png');" data-mode="crossword">Crossword</div>
+            <div class="mode" style="background-image: url('https://via.placeholder.com/800x500/44ff44/ffffff?text=Mode+2');" data-mode="mode2">Mode 2</div>
+        </div>
+        
+        <div class="controls">
+            <button class="arrow left">&#10094;</button>
+            <button class="arrow right">&#10095;</button>
+        </div>
+    </div>
+
+    <!-- Ajouter un bouton Play qui va démarrer le mode actif -->
+    <button class="play-button" id="playButton">Play</button>
+
+    <script>
+        let currentIndex = 0;
+        let selectedMode = "crossword";  // Par défaut, le mode actif est 'crossword'
+        const carousel = document.querySelector('.carousel');
+        const modeTitle = document.querySelector('.mode-title');
+        const modes = document.querySelectorAll('.mode');
+        let autoScrollInterval;
+        let inactivityTimeout;
+
+        function updateCarousel() {
+            carousel.style.transform = `translateX(${-currentIndex * 100}%)`;
+            modeTitle.textContent = modes[currentIndex].textContent;
+            selectedMode = modes[currentIndex].getAttribute('data-mode');  // Mettre à jour le mode actif
+        }
+
+        function nextMode() {
+            currentIndex = (currentIndex < modes.length - 1) ? currentIndex + 1 : 0;
+            updateCarousel();
+        }
+
+        function prevMode() {
+            currentIndex = (currentIndex > 0) ? currentIndex - 1 : modes.length - 1;
+            updateCarousel();
+        }
+
+        function resetAutoScroll() {
+            clearInterval(autoScrollInterval);
+            clearTimeout(inactivityTimeout);
+            
+            inactivityTimeout = setTimeout(() => {
+                autoScrollInterval = setInterval(nextMode, 3000);
+            }, 20000);
+        }
+
+        document.querySelector('.left').addEventListener('click', () => {
+            prevMode();
+            resetAutoScroll();
+        });
+
+        document.querySelector('.right').addEventListener('click', () => {
+            nextMode();
+            resetAutoScroll();
+        });
+
+        // Ajout d'un événement de clic pour la sélection du mode
+        modes.forEach(mode => {
+            mode.addEventListener('click', () => {
+                currentIndex = Array.from(modes).indexOf(mode);
+                updateCarousel();
+                resetAutoScroll();  // Réinitialiser le défilement automatique
+            });
+        });
+
+        // Ajouter une fonction pour jouer le mode sélectionné
+        document.getElementById('playButton').addEventListener('click', () => {
+            if (selectedMode === 'crossword') {
+                window.location.href = "/crossword";  // Rediriger vers la page crossword
+            } else if (selectedMode === 'mode2') {
+                // Rediriger vers une autre page pour le mode 2 si nécessaire
+                alert("Mode 2 sélectionné, mais non implémenté.");
+            }
+        });
+
+        resetAutoScroll();
+    </script>
+
+</body>
+</html>

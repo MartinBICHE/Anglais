@@ -198,7 +198,7 @@ def get_def_from_db(placed_words):
 
 grid, placed_words, word_directions = None, None, None
 
-@app.route('/')
+@app.route('/crossword')
 def crossword():
     if "grid" not in session or "placed_words" not in session or "word_directions" not in session:
         with sqlite3.connect('crossword_words.db') as con:
@@ -321,6 +321,10 @@ def clean_grid(grid):
         grid.pop()
 
     return grid
+
+@app.route('/')
+def menu():
+    return render_template('menu.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
