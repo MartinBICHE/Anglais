@@ -10,6 +10,21 @@
             text-align: center;
             margin: 20px;
         }
+        #menuButton {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #menuButton:hover {
+            background-color: #cc0000;
+        }
         #grid-container {
             display: flex;
             justify-content: left;
@@ -20,7 +35,6 @@
             margin-right: 40px;
         }
         #definitions {
-            
             text-align: left;
         }
         h1 {
@@ -89,6 +103,7 @@
 </head>
 <body>
 
+    <button id="menuButton" onclick="confirmReturnToMenu()">⬅ Menu</button>
     <h1>Crossword Puzzle</h1>
 
     {% if message %}
@@ -106,14 +121,14 @@
             </div>
             <div id="definitions">
                 <h3>Definitions:</h3>
-<br>
+                <br>
                 <div class="definitions-section horizontal-definitions">
                     <br>
                     {% for word, definition in definitions_h.items() %}
                         <strong>{{ word }}</strong> {{ definition }} <br>
                     {% endfor %}
                 </div>
-<br>
+                <br>
                 <div class="definitions-section vertical-definitions">
                     <br>
                     {% for word, definition in definitions_v.items() %}
@@ -123,6 +138,15 @@
             </div>
         </div>
     {% endif %}
+
+    <script>
+        function confirmReturnToMenu() {
+            let saveProgress = confirm("Are you sure you want to return to the menu? Your changes will not be saved.");
+            if (saveProgress) {
+                window.location.href = '/';
+            }
+        }
+    </script>
 
 </body>
 </html>
