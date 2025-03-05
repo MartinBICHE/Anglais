@@ -1,0 +1,109 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 20px;
+}
+
+#menuButton {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#menuButton:hover {
+    background-color: #cc0000;
+}
+
+#grid-container {
+    display: flex;
+    justify-content: left;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+#crossword {
+    margin-right: 40px;
+}
+
+#definitions {
+    text-align: left;
+}
+
+h1 {
+    color: #333;
+}
+
+#validateButton, #newGridButton {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#validateButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.message {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.success {
+    color: green;
+}
+
+.error {
+    color: red;
+}
+
+#newGridButton {
+    background-color: #28a745;
+}
+
+.definitions-section {
+    padding: 10px;
+    border: 2px solid #ddd;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+.horizontal-definitions::before {
+    content: 'Horizontal';
+    background-color: #cccccc;
+    color: white;
+    padding: 5px 10px;
+    font-weight: bold;
+    border-top-left-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    position: relative;
+    top: -7px;
+    left: -11px;
+}
+
+.vertical-definitions::before {
+    content: 'Vertical';
+    background-color: #cccccc;
+    color: white;
+    padding: 5px 10px;
+    font-weight: bold;
+    border-top-left-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    position: relative;
+    top: -7px;
+    left: -11px;
+}
