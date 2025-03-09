@@ -122,7 +122,6 @@ def generate_crossword(words,theme, size=20):
     return grid, placed_words, word_directions
 
 def generate_html(grid, user_answers=None, feedback_grid=None):
-    # Cette fonction génère le HTML pour afficher la grille du jeu
     html = """
     <script>
         function checkInputs() {
@@ -180,10 +179,6 @@ def generate_html(grid, user_answers=None, feedback_grid=None):
     html += "</form>"
     
     return html
-
-import sqlite3
-
-import sqlite3
 
 def get_def_from_db(placed_words, theme):
     definitions = {}

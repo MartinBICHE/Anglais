@@ -54,7 +54,7 @@ def validate():
     grid = session["grid"]
     placed_words = session["placed_words"]
     word_directions = session["word_directions"]
-    theme = session["theme"]  # Récupération du thème sauvegardé
+    theme = session["theme"] 
 
     user_answers = {key: value for key, value in request.form.items()}
 
@@ -71,7 +71,7 @@ def validate():
 
             if cell_value != ' ' and not cell_value.isdigit():
                 if user_value.isalpha():
-                    if user_value.lower() == cell_value.lower():  # Vérification insensible à la casse
+                    if user_value.lower() == cell_value.lower():
                         feedback_row.append('correct')
                     else:
                         feedback_row.append('incorrect')
@@ -93,7 +93,7 @@ def validate():
 
     html_grid = generate_html(grid, user_answers, feedback_grid) if not all_correct else ""
 
-    definitions = get_def_from_db(placed_words, theme)  # Correction : Ajout du paramètre `theme`
+    definitions = get_def_from_db(placed_words, theme) 
 
     definitions_h, definitions_v = {}, {}
     for index, word in enumerate(placed_words, start=1):

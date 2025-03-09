@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu de Jeu - Modes</title>
-    <!-- Lien vers le fichier CSS dans le dossier static -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
 </head>
 <body>
@@ -23,12 +22,11 @@
         </div>
     </div>
 
-    <!-- Ajouter un bouton Play qui va démarrer le mode actif -->
     <button class="play-button" id="playButton">Play</button>
 
     <script>
         let currentIndex = 0;
-        sessionStorage.setItem("selectedMode", "crossword");  // Par défaut, le mode actif est 'crossword'
+        sessionStorage.setItem("selectedMode", "crossword");
         const carousel = document.querySelector('.carousel');
         const modeTitle = document.querySelector('.mode-title');
         const modes = document.querySelectorAll('.mode');
@@ -38,7 +36,7 @@
         function updateCarousel() {
             carousel.style.transform = `translateX(${-currentIndex * 100}%)`;
             modeTitle.textContent = modes[currentIndex].textContent;
-            selectedMode = modes[currentIndex].getAttribute('data-mode');  // Mettre à jour le mode actif
+            selectedMode = modes[currentIndex].getAttribute('data-mode'); 
         }
 
         function nextMode() {
@@ -70,18 +68,16 @@
             resetAutoScroll();
         });
 
-        // Ajout d'un événement de clic pour la sélection du mode
         modes.forEach(mode => {
             mode.addEventListener('click', () => {
                 currentIndex = Array.from(modes).indexOf(mode);
                 updateCarousel();
-                resetAutoScroll();  // Réinitialiser le défilement automatique
+                resetAutoScroll();
             });
         });
 
-        // Ajouter une fonction pour jouer le mode sélectionné
         document.getElementById('playButton').addEventListener('click', () => {
-            window.location.href = "/theme";  // Rediriger vers la page crossword
+            window.location.href = "/theme";
         });
 
         resetAutoScroll();

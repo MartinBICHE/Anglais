@@ -12,7 +12,7 @@
     <select id="mode-select">
         <option value="all">all</option>
         {% for theme in themes %}
-            <option value="{{ theme }}">{{ theme }}</option> <!-- Correction de la valeur -->
+            <option value="{{ theme }}">{{ theme }}</option> 
         {% endfor %}
     </select>
 
@@ -20,9 +20,9 @@
 
     <script>
         document.getElementById('confirmButton').addEventListener('click', () => {
-            let selectedTheme = document.getElementById("mode-select").value; // Récupération correcte de la valeur
+            let selectedTheme = document.getElementById("mode-select").value; 
 
-            console.log("Thème sélectionné :", selectedTheme); // Debug dans la console
+            console.log("Thème sélectionné :", selectedTheme); 
 
             let url = `/crossword/${selectedTheme}`;
             window.location.href = url;
