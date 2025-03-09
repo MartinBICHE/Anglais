@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu de Jeu - Modes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+<body>
+
+    <label for="mode-select">Choisissez un thème :</label>
+    <select id="mode-select">
+        <option value="all">all</option>
+        {% for theme in themes %}
+            <option value="{{ theme }}">{{ theme }}</option> <!-- Correction de la valeur -->
+        {% endfor %}
+    </select>
+
+    <button class="confirm-button" id="confirmButton">Play</button>
+
+    <script>
+        document.getElementById('confirmButton').addEventListener('click', () => {
+            let selectedTheme = document.getElementById("mode-select").value; // Récupération correcte de la valeur
+
+            console.log("Thème sélectionné :", selectedTheme); // Debug dans la console
+
+            let url = `/crossword/${selectedTheme}`;
+            window.location.href = url;
+        });
+    </script>
+
+</body>
+</html>

@@ -28,7 +28,7 @@
 
     <script>
         let currentIndex = 0;
-        let selectedMode = "crossword";  // Par défaut, le mode actif est 'crossword'
+        sessionStorage.setItem("selectedMode", "crossword");  // Par défaut, le mode actif est 'crossword'
         const carousel = document.querySelector('.carousel');
         const modeTitle = document.querySelector('.mode-title');
         const modes = document.querySelectorAll('.mode');
@@ -81,12 +81,7 @@
 
         // Ajouter une fonction pour jouer le mode sélectionné
         document.getElementById('playButton').addEventListener('click', () => {
-            if (selectedMode === 'crossword') {
-                window.location.href = "/crossword";  // Rediriger vers la page crossword
-            } else if (selectedMode === 'mode2') {
-                // Rediriger vers une autre page pour le mode 2 si nécessaire
-                alert("Mode 2 sélectionné, mais non implémenté.");
-            }
+            window.location.href = "/theme";  // Rediriger vers la page crossword
         });
 
         resetAutoScroll();

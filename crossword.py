@@ -69,7 +69,7 @@ def place_word_with_number(grid, word, row, col, direction, number):
         for i in range(len(word)):
             grid[row + i][col] = word[i]
 
-def generate_crossword(words, size=10):
+def generate_crossword(words,theme, size=20):
     grid = create_empty_grid(size)
     placed_words = []
     word_directions = {}
@@ -181,17 +181,29 @@ def generate_html(grid, user_answers=None, feedback_grid=None):
     
     return html
 
-def get_def_from_db(placed_words):
+import sqlite3
+
+import sqlite3
+
+def get_def_from_db(placed_words, theme):
     definitions = {}
     if placed_words:
-        con = sqlite3.connect('crossword_words.db')
+        con = sqlite3.connect('words.db')
         cur = con.cursor()
-        query = f"SELECT word, def FROM words WHERE word IN ({','.join(['?'] * len(placed_words))})"
-        cur.execute(query, placed_words)
+        
+        if theme != "all":
+            query = f"SELECT word, def FROM words WHERE theme = ? AND word IN ({','.join(['?'] * len(placed_words))})"
+            cur.execute(query, (theme, *placed_words))
+        else:
+            query = f"SELECT word, def FROM words WHERE word IN ({','.join(['?'] * len(placed_words))})"
+            cur.execute(query, tuple(placed_words))
+
         definitions = {row[0]: row[1] for row in cur.fetchall()}
         con.close()
     
     return definitions
+
+
 
 def clean_grid(grid):
     while grid and all(cell == ' ' for cell in grid[0]):
