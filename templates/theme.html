@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu de Jeu - Modes</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <label for="mode-select">Choisissez un thème :</label>
+    <label for="mode-select">Select a theme :</label>
     <select id="mode-select">
-        <option value="all">all</option>
+        <option value="all">all themes</option>
         {% for theme in themes %}
             <option value="{{ theme }}">{{ theme }}</option> 
         {% endfor %}
@@ -21,11 +22,8 @@
     <script>
         document.getElementById('confirmButton').addEventListener('click', () => {
             let selectedTheme = document.getElementById("mode-select").value; 
-
             console.log("Thème sélectionné :", selectedTheme); 
-
-            let url = `/crossword/${selectedTheme}`;
-            window.location.href = url;
+            window.location.href = `/crossword/${selectedTheme}`;
         });
     </script>
 

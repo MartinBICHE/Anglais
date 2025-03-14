@@ -13,7 +13,7 @@
     <div class="carousel-container">
         <div class="carousel">
             <div class="mode" style="background-image: url('{{ url_for('static', filename='images/crossword.png') }}');" data-mode="crossword">Crossword</div>
-            <div class="mode" style="background-image: url('https://via.placeholder.com/800x500/44ff44/ffffff?text=Mode+2');" data-mode="mode2">Mode 2</div>
+            <div class="mode" style="background-image: url('{{ url_for('static', filename='images/wordSearch.png') }}');" data-mode="word_search_puzzle">Word search puzzle</div>
         </div>
         
         <div class="controls">
@@ -78,6 +78,9 @@
 
         document.getElementById('playButton').addEventListener('click', () => {
             window.location.href = "/theme";
+            if (selectedMode == 'word_search_puzzle') {
+                 window.location.href = "/word_search_puzzle";
+            } 
         });
 
         resetAutoScroll();

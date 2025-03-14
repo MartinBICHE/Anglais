@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import *
 import sqlite3
 import random
-from crossword import generate_crossword, generate_html, get_def_from_db
+from crossword import *
+from wordSearchPuzzle import *
 
 app = Flask(__name__)
 app.secret_key = "crossword_secret_key"
@@ -33,7 +34,7 @@ def crossword(theme:str):
 
     html_grid = generate_html(grid)
 
-    definitions = get_def_from_db(placed_words,theme)
+    definitions = get_def_from_db_C(placed_words,theme)
 
     definitions_h, definitions_v = {}, {}
     for index, word in enumerate(placed_words, start=1):
@@ -127,6 +128,28 @@ def choix_theme():
     for row in cur.execute('SELECT DISTINCT theme FROM words;'):
         themes.append(row[0])
     return render_template('theme.html',themes=themes)
+
+@app.route('/word_search_puzzle')
+def word_search_puzzle():
+    if "word_search_grid" not in session or "word_search_words" not in session:
+        words = get_words_from_db()
+        grid, placed_words = generate_word_search(words, size=15)
+
+        session["word_search_grid"] = grid
+        session["word_search_words"] = placed_words
+    else:
+        grid = session["word_search_grid"]
+        placed_words = session["word_search_words"]
+
+    definitions = get_def_from_db_WSP(placed_words)
+    html_grid = generate_word_search_html(grid, placed_words)
+    return render_template("wordSearch.html", mot_mele=html_grid, definitions=definitions)
+
+@app.route('/new_word_search_puzzle')
+def new_word_search_puzzle():
+    session.pop("word_search_grid", None)
+    session.pop("word_search_words", None)
+    return redirect('/word_search_puzzle')
 
 @app.route('/')
 def menu():

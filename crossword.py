@@ -180,7 +180,7 @@ def generate_html(grid, user_answers=None, feedback_grid=None):
     
     return html
 
-def get_def_from_db(placed_words, theme):
+def get_def_from_db_C(placed_words, theme):
     definitions = {}
     if placed_words:
         con = sqlite3.connect('words.db')
