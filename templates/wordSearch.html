@@ -79,82 +79,62 @@
     <script>
         let selectedWord = "";
     
-        // 🎯 Sélectionner un mot lorsqu'une case est cochée
         document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', function() {
-                // Si la case est cochée
                 if (this.checked) {
-                    // Récupère le mot associé à la définition
-                    selectedWord = this.getAttribute("data-word").toUpperCase(); // Utilise data-word pour récupérer le mot
-                    console.log("✅ Mot sélectionné :", selectedWord);
-    
-                    // Désactive toutes les autres checkboxes si une est cochée
+                    selectedWord = this.getAttribute("data-word").toUpperCase(); 
                     disableOtherCheckboxes(this);
                 } else {
-                    // Si la case est décochée, on réactive toutes les autres cases
                     enableUncheckedCheckboxes();
-                    console.log("🚫 Mot désélectionné");
                     selectedWord = "";
                 }
             });
         });
     
-        // 🎯 Rendre la grille interactive
         document.querySelectorAll("td").forEach(cell => {
             cell.style.cursor = "pointer"; 
             cell.addEventListener("click", function() {
                 if (!selectedWord) {
-                    console.log("❌ Aucun mot sélectionné.");
                     return;
                 }
     
-                let letter = this.innerText.replace(/\s+/g, "").toUpperCase(); // 🔥 Fix ici
-                console.log("🔎 Lettre cliquée :", letter, "| Première lettre attendue :", selectedWord[0]);
+                let letter = this.innerText.replace(/\s+/g, "").toUpperCase(); 
     
                 if (letter === selectedWord[0]) {
-                    console.log("✅ Première lettre correcte :", letter);
-    
-                    // 🔍 Vérifier si le mot complet est dans la grille
                     let wordCells = findWordInGrid(this, selectedWord);
                     if (wordCells) {
-                        console.log("🎉 Mot trouvé :", selectedWord);
                         highlightWord(wordCells);
-                        checkForeverWord(selectedWord);  // Marque le mot comme trouvé
-                        enableUncheckedCheckboxes();  // Permet de cocher une autre case
+                        checkForeverWord(selectedWord); 
+                        enableUncheckedCheckboxes(); 
                     } else {
-                        console.log("❌ Mot incorrect !");
                         triggerShakeEffect();
                         uncheckWord(selectedWord);
                     }
     
                     selectedWord = "";
                 } else {
-                    console.log("❌ Mauvaise lettre !");
                     triggerShakeEffect();
                     uncheckWord(selectedWord);
                 }
             });
         });
     
-        // 🎯 Fonction pour désactiver toutes les autres cases à cocher sauf celle qui a été cochée
         function disableOtherCheckboxes(checkbox) {
             document.querySelectorAll('input[type="checkbox"]').forEach(otherCheckbox => {
                 if (otherCheckbox !== checkbox && !otherCheckbox.disabled) {
-                    otherCheckbox.disabled = true;  // Désactive les autres checkboxes
+                    otherCheckbox.disabled = true;  
                 }
             });
         }
     
-        // 🎯 Fonction pour réactiver uniquement les checkboxes non cochées
         function enableUncheckedCheckboxes() {
             document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                if (!checkbox.checked) {  // Vérifie si la checkbox n'est pas cochée
-                    checkbox.disabled = false;  // Réactive la checkbox non cochée
+                if (!checkbox.checked) { 
+                    checkbox.disabled = false; 
                 }
             });
         }
     
-        // 🎯 Recherche du mot dans la grille
         function findWordInGrid(startCell, word) {
             let table = startCell.closest("table");
             let rows = [...table.querySelectorAll("tr")];
@@ -162,8 +142,6 @@
     
             let rowIndex = grid.findIndex(row => row.includes(startCell));
             let colIndex = grid[rowIndex].indexOf(startCell);
-    
-            console.log(`📍 Recherche du mot "${word}" depuis la case [${rowIndex}, ${colIndex}]`);
     
             let directions = [
                 [1, 0], [0, 1], [1, 1], [-1, 1],
@@ -186,50 +164,38 @@
                 }
     
                 if (found) {
-                    console.log("✅ Mot trouvé dans cette direction :", dx, dy);
                     return cellsToHighlight;
                 }
             }
     
-            console.log("❌ Mot non trouvé !");
             return null;
         }
     
-        // 🎯 Fonction pour surligner le mot trouvé avec une couleur aléatoire
         function highlightWord(cells) {
-            console.log("🖌️ Mot surligné :", cells.map(cell => cell.innerText));
-    
-            // Générer une couleur aléatoire
             const randomColor = getRandomColor();
             
-            // Appliquer la couleur aléatoire à chaque cellule du mot trouvé
             cells.forEach(cell => {
-                cell.style.backgroundColor = randomColor;  // Appliquer la couleur aléatoire
+                cell.style.backgroundColor = randomColor; 
             });
         }
     
-        // 🎯 Fonction pour marquer définitivement le mot comme trouvé et le rendre non modifiable
         function checkForeverWord(word) {
-            console.log("📋 Mot trouvé, case désactivée :", word);
             document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                // Lorsque le mot est trouvé, on désactive la case à cocher
                 if (checkbox.getAttribute("data-word").toUpperCase() === word) {
-                    checkbox.checked = true;  // La case reste cochée
-                    checkbox.disabled = true; // Désactive la case pour qu'elle ne soit plus modifiable
+                    checkbox.checked = true;  
+                    checkbox.disabled = true; 
                 }
             });
         }
     
-        // 🎯 Fonction pour décocher une case si le mot est incorrect
         function uncheckWord(word) {
             document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                 if (checkbox.getAttribute("data-word").toUpperCase() === word) {
-                    checkbox.checked = false;  // La case reste décochée
+                    checkbox.checked = false; 
                 }
             });
         }
     
-        // 🎯 Fonction pour générer une couleur aléatoire
         function getRandomColor() {
             const letters = '0123456789ABCDEF';
             let color = '#';
@@ -239,14 +205,12 @@
             return color;
         }
     
-        // 🎯 Effet de tremblement de la page en cas d'erreur
         function triggerShakeEffect() {
             document.body.classList.add("shake");
             
-            // Enlever la classe après l'animation
             setTimeout(() => {
                 document.body.classList.remove("shake");
-            }, 500); // Durée de l'animation (500ms)
+            }, 500);
         }
     </script>
     

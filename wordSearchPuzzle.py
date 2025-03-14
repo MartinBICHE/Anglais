@@ -45,7 +45,7 @@ def generate_word_search(words, size=15):
                 placed_words.append(word)
                 break
     
-    fill_remaining_spaces(grid)  # Remplir les cases vides avec des lettres aléatoires
+    fill_remaining_spaces(grid)  
     return grid, placed_words
 
 def generate_word_search_html(grid, placed_words):
@@ -69,11 +69,11 @@ def get_words_from_db():
 def get_def_from_db_WSP(placed_words):
     con = sqlite3.connect('words.db')
     cur = con.cursor()
-    word_definitions = {}  # Dictionnaire pour associer les mots à leurs définitions
+    word_definitions = {} 
     
     for word in placed_words:
         for row in cur.execute('SELECT def FROM words WHERE word=?', (word.lower(),)):
-            word_definitions[word] = row[0]  # Mot comme clé, définition comme valeur
+            word_definitions[word] = row[0]  
     
     con.close()
     return word_definitions
