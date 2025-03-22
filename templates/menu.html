@@ -26,10 +26,10 @@
 
     <script>
         let currentIndex = 0;
-        sessionStorage.setItem("selectedMode", "crossword");
         const carousel = document.querySelector('.carousel');
         const modeTitle = document.querySelector('.mode-title');
         const modes = document.querySelectorAll('.mode');
+        let selectedMode = modes[currentIndex].getAttribute('data-mode');
         let autoScrollInterval;
         let inactivityTimeout;
 
@@ -77,11 +77,10 @@
         });
 
         document.getElementById('playButton').addEventListener('click', () => {
-            window.location.href = "/theme";
-            if (selectedMode == 'word_search_puzzle') {
-                 window.location.href = "/word_search_puzzle";
-            } 
+            sessionStorage.setItem("selectedMode", selectedMode); 
+            window.location.href = "/theme"; 
         });
+
 
         resetAutoScroll();
     </script>

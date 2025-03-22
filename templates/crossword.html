@@ -25,19 +25,19 @@
                 {{ crossword|safe }}
             </div>
             <div id="definitions">
-                <h3>Definitions:</h3>
+                <br>
                 <br>
                 <div class="definitions-section horizontal-definitions">
                     <br>
                     {% for word, definition in definitions_h.items() %}
-                        <strong>{{ word }}</strong> {{ definition }} <br>
+                        <div class="definition-item"><strong>{{ word }}</strong> {{ definition }}</div>
                     {% endfor %}
                 </div>
                 <br>
                 <div class="definitions-section vertical-definitions">
                     <br>
                     {% for word, definition in definitions_v.items() %}
-                        <strong>{{ word }}</strong> {{ definition }} <br>
+                        <div class="definition-item"><strong>{{ word }}</strong> {{ definition }}</div>
                     {% endfor %}
                 </div>
             </div>

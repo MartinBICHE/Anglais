@@ -15,11 +15,9 @@ def crossword(theme:str):
             if theme == "all":
                 cur.execute("SELECT word, def FROM words")
                 words = [{'word': row[0], 'def': row[1]} for row in cur.fetchall()]
-                print("all")
             else : 
                 cur.execute("SELECT word, def FROM words WHERE theme=?", (theme,))
                 words = [{'word': row[0], 'def': row[1]} for row in cur.fetchall()]
-                print("other")
         grid, placed_words, word_directions = generate_crossword(words, theme, size=20)
 
         session["theme"] = theme
@@ -129,10 +127,10 @@ def choix_theme():
         themes.append(row[0])
     return render_template('theme.html',themes=themes)
 
-@app.route('/word_search_puzzle')
-def word_search_puzzle():
+@app.route('/word_search_puzzle/<string:theme>')
+def word_search_puzzle(theme:str):
     if "word_search_grid" not in session or "word_search_words" not in session:
-        words = get_words_from_db()
+        words = get_words_from_db(theme)
         grid, placed_words = generate_word_search(words, size=15)
 
         session["word_search_grid"] = grid
@@ -143,13 +141,14 @@ def word_search_puzzle():
 
     definitions = get_def_from_db_WSP(placed_words)
     html_grid = generate_word_search_html(grid, placed_words)
+    
     return render_template("wordSearch.html", mot_mele=html_grid, definitions=definitions)
 
 @app.route('/new_word_search_puzzle')
 def new_word_search_puzzle():
     session.pop("word_search_grid", None)
     session.pop("word_search_words", None)
-    return redirect('/word_search_puzzle')
+    return redirect('/theme')
 
 @app.route('/')
 def menu():

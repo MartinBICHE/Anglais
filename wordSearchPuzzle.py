@@ -58,11 +58,16 @@ def generate_word_search_html(grid, placed_words):
     html += "</table><br>"
     return html
 
-def get_words_from_db():
-    con = sqlite3.connect('words.db')
-    cur = con.cursor()
-    cur.execute("SELECT word FROM words")
-    words = [row[0].upper() for row in cur.fetchall()]
+def get_words_from_db(theme):
+    with sqlite3.connect('words.db') as con:
+        cur = con.cursor()
+        if theme == "all":
+            cur.execute("SELECT word, def FROM words")
+            words = [row[0].upper() for row in cur.fetchall()]
+        else : 
+            cur.execute("SELECT word, def FROM words WHERE theme=?", (theme,))
+            words = [row[0].upper() for row in cur.fetchall()]
+    print(words)
     con.close()
     return words
 
@@ -74,6 +79,5 @@ def get_def_from_db_WSP(placed_words):
     for word in placed_words:
         for row in cur.execute('SELECT def FROM words WHERE word=?', (word.lower(),)):
             word_definitions[word] = row[0]  
-    
     con.close()
     return word_definitions

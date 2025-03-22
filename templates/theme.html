@@ -22,9 +22,13 @@
     <script>
         document.getElementById('confirmButton').addEventListener('click', () => {
             let selectedTheme = document.getElementById("mode-select").value; 
-            console.log("Thème sélectionné :", selectedTheme); 
-            window.location.href = `/crossword/${selectedTheme}`;
+            let selectedMode = sessionStorage.getItem("selectedMode"); 
+
+            console.log("Mode sélectionné :", selectedMode);
+            console.log("Thème sélectionné :", selectedTheme);
+            window.location.href = `/${selectedMode}/${selectedTheme}`;
         });
+
     </script>
 
 </body>

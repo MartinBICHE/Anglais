@@ -2,6 +2,7 @@ body {
     font-family: Arial, sans-serif;
     text-align: center;
     margin: 20px;
+    overflow-x: hidden;
 }
 
 #menuButton {
@@ -82,28 +83,84 @@ h1 {
     background-color: #fff;
 }
 
+.horizontal-definitions {
+    width: 80%;  
+    max-width: 800px; 
+    overflow-x: auto;  
+    border: 1px solid #ccc;
+    display: flex; 
+    flex-direction: column; 
+    position: relative; 
+    scrollbar-width: thin; 
+    scrollbar-color: #888 #f1f1f1;
+    padding: 5px; 
+    max-height: 300px; 
+    overflow-y: auto; 
+}
+
 .horizontal-definitions::before {
-    content: 'Horizontal';
+    content: 'Horizontal definitions';
     background-color: #cccccc;
     color: white;
     padding: 5px 10px;
     font-weight: bold;
     border-top-left-radius: 5px;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-    position: relative;
-    top: -7px;
-    left: -11px;
+    border-top-right-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0; 
+    left: 0;
+    font-size: 16px; 
+    z-index: 1; 
+    width: 100%; 
+    text-align: center; 
+}
+
+
+.vertical-definitions {
+    width: 80%;  
+    max-width: 800px; 
+    overflow-x: auto;  
+    border: 1px solid #ccc;
+    display: flex; 
+    flex-direction: column; 
+    position: relative; 
+    scrollbar-width: thin; 
+    scrollbar-color: #888 #f1f1f1;
+    padding: 5px; 
+    max-height: 300px; 
+    overflow-y: auto; 
 }
 
 .vertical-definitions::before {
-    content: 'Vertical';
+    content: 'Vertical definitions'; 
     background-color: #cccccc;
     color: white;
     padding: 5px 10px;
     font-weight: bold;
     border-top-left-radius: 5px;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-    position: relative;
-    top: -7px;
-    left: -11px;
+    border-top-right-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    position: sticky; 
+    top: 0; 
+    left: 0;
+    font-size: 16px; 
+    z-index: 1; 
+    width: 100%; 
+    text-align: center; 
+}
+
+
+.definition-item {
+    display: block; 
+    white-space: nowrap; 
+    
+}
+
+.definition-item strong {
+    position: sticky; 
+    left: 0; 
+    padding-right: 5px; 
+    z-index: 0; 
+    background : white
 }
