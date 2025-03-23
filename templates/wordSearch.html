@@ -8,19 +8,23 @@
 </head>
 <body>
 
-    <h1>Mot Mêlé</h1>
-
-    <div>{{ mot_mele | safe}}</div>
-
-    <h2>Mots à trouver :</h2>
-    <div class="word-list">
-        <ul>
-            {% for word, definition in definitions.items() %}
-                <input type="checkbox" id="option{{ loop.index }}" name="option{{ loop.index }}" data-word="{{ word }}">
-                <label for="option{{ loop.index }}">{{ definition }}</label><br>
-            {% endfor %}
-        </ul>
+    <button id="menuButton" onclick="confirmReturnToMenu()">⬅ Menu</button>
+    <h1>Word Search Puzzle</h1>
+    <div id="grid-container">
+        <div id="puzzle">{{ mot_mele | safe}}</div>
+    
+        <div class="word-list">
+            <ul>
+                {% for word, definition in definitions.items() %}
+                    <li class="definition-item">
+                        <input type="checkbox" id="option{{ loop.index }}" name="option{{ loop.index }}" data-word="{{ word }}">
+                        <label for="option{{ loop.index }}">{{ definition }}</label>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
+    
 
     <br>
     <a href="{{ url_for('new_word_search_puzzle') }}" class="btn">Nouvelle grille</a>
@@ -171,6 +175,29 @@
                 document.body.classList.remove("shake");
             }, 500);
         }
+
+        function confirmReturnToMenu() {
+            let saveProgress = confirm("Are you sure you want to return to the menu? Your changes will not be saved.");
+            if (saveProgress) {
+                fetch('/clear_word_search_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '/'; 
+                    } else {
+                        alert("Une erreur est survenue lors de la suppression de la session.");
+                    }
+                })
+                .catch(error => {
+                    alert("Erreur lors de la suppression de la session: " + error);
+                });
+            }
+        }
+
     </script>
     
 </body>

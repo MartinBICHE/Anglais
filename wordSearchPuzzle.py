@@ -53,7 +53,7 @@ def generate_word_search_html(grid, placed_words):
     for row in grid:
         html += "<tr>"
         for cell in row:
-            html += f"<td style='width: 30px; height: 30px; text-align: center; border: 1px solid black;'>{cell}</td>"
+            html += f"<td style='width: 40px; height: 40px; text-align: center; border: 1px solid black;'>{cell}</td>"
         html += "</tr>"
     html += "</table><br>"
     return html
@@ -67,7 +67,6 @@ def get_words_from_db(theme):
         else : 
             cur.execute("SELECT word, def FROM words WHERE theme=?", (theme,))
             words = [row[0].upper() for row in cur.fetchall()]
-    print(words)
     con.close()
     return words
 

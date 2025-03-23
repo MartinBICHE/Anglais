@@ -150,6 +150,12 @@ def new_word_search_puzzle():
     session.pop("word_search_words", None)
     return redirect('/theme')
 
+@app.route('/clear_word_search_session', methods=['POST'])
+def clear_word_search_session():
+    session.pop("word_search_grid", None)
+    session.pop("word_search_words", None)
+    return '', 204 
+
 @app.route('/')
 def menu():
     return render_template('menu.html')

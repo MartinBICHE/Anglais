@@ -2,11 +2,40 @@ body {
     font-family: Arial, sans-serif;
     text-align: center;
     margin: 20px;
+    overflow-x: auto;
+    white-space: nowrap; 
+    width: 100%;
 }
-table {
-    margin: auto;
-    border-collapse: collapse;
+
+#menuButton {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
 }
+
+#menuButton:hover {
+    background-color: #cc0000;
+}
+
+#grid-container {
+    display: flex;
+    justify-content: left;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    min-width: 100%;
+}
+
+#puzzle {
+    margin-right: 40px;
+}
+
 td {
     width: 30px;
     height: 30px;
@@ -15,27 +44,93 @@ td {
     font-size: 20px;
     font-weight: bold;
 }
+
 ul {
     list-style-type: none;
     padding: 0;
 }
+
 .word-list {
-    display: inline-block;
-    text-align: left;
+    width: 80%;
+    max-width: 700px;
+    overflow-x: auto;
+    border: 1px solid #ccc;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: #888 #f1f1f1;
+    padding: 5px;
+    max-height: 650px;
+    overflow-y: auto;
+    white-space: nowrap;
 }
-.btn {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #007BFF;
+
+.word-list::before {
+    margin-bottom: 20px;
+    content: 'Words to find';
+    background-color: #cccccc;
     color: white;
-    text-decoration: none;
-    border-radius: 5px;
+    padding: 5px 10px;
+    font-weight: bold;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    left: 0;
+    font-size: 16px;
+    z-index: 1;
+    width: 100%;
+    text-align: center;
 }
-.btn:hover {
-    background-color: #0056b3;
+
+.definition-item {
+    display: flex;
+    align-items: center; 
+    margin-bottom: 5px; 
+    white-space: nowrap; 
 }
+
+
+input[type="checkbox"] {
+    margin-right: 10px;
+    position: sticky; 
+    left: 0; 
+    top: 0; 
+    z-index: 0; 
+}
+
+
+label {
+    display: inline-block;
+    white-space: nowrap;
+    max-width: 100%; 
+    text-align: left;
+    word-wrap: break-word; 
+    padding-right: 10px;
+    max-width: 100%;
+}
+
+
+.word-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    overflow-x: auto; 
+}
+
+
+.word-list ul {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+
 @keyframes shake {
     0% { transform: translateX(0); }
     25% { transform: translateX(-10px); }
@@ -46,4 +141,19 @@ ul {
 
 .shake {
     animation: shake 0.5s ease-in-out;
+}
+
+.btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.btn:hover {
+    background-color: #0056b3;
 }
