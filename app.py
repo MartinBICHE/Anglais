@@ -1,11 +1,93 @@
 from flask import *
 import sqlite3
 import random
+from flask_login import *
+from flask_bcrypt import *
 from crossword import *
 from wordSearchPuzzle import *
+from memory import *
 
 app = Flask(__name__)
-app.secret_key = "crossword_secret_key"
+app.config['SECRET_KEY'] = "MySuperSecretKey"
+bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+
+class User(UserMixin):
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+    @property
+    def id(self):
+        return self.username
+
+    @staticmethod
+    def get_user_by_username(username):
+        conn = sqlite3.connect('final_bd.db')
+        user_data = conn.execute('''
+            SELECT * FROM users WHERE username=?''',
+            (username,)).fetchone()
+        conn.close()
+        if user_data:
+            return User(user_data[0], user_data[1])
+        return None
+
+@login_manager.user_loader
+def load_user(username):
+    return User.get_user_by_username(username)
+
+@app.route('/register/', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect('/')
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        conn = sqlite3.connect('final_bd.db')
+        try:
+            conn.execute('''
+                INSERT INTO users
+                VALUES (?, ?)''',
+                (username, hashed_password))
+        except sqlite3.IntegrityError:
+            return render_template('register.html', usernameExists=True)
+        conn.commit()
+        conn.close()
+        return redirect('/')
+    return render_template('register.html')
+
+@app.route('/login/', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect('/')
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.get_user_by_username(username)
+        if user and bcrypt.check_password_hash(user.password, password):
+            login_user(user)
+            return redirect('/')
+        else:
+            return render_template('login.html', badCredentials=True)
+    return render_template('login.html', badCredentials=False)
+
+@app.route('/logout/', methods=['GET'])
+@login_required
+def logout():
+    logout_user()
+    return redirect('/')
+
+@app.route('/header/', methods=['GET'])
+def header():
+    if current_user.is_authenticated:
+        return render_template("header.html", current_user=current_user, isauth=True)
+    else:
+        return render_template("header.html", current_user=current_user, isauth=False)
+
+@app.route('/footer/', methods=['GET'])
+def footer():
+    return render_template("footer.html")
 
 @app.route('/crossword/<string:theme>')
 def crossword(theme:str):
@@ -92,7 +174,7 @@ def validate():
 
     html_grid = generate_html(grid, user_answers, feedback_grid) if not all_correct else ""
 
-    definitions = get_def_from_db(placed_words, theme) 
+    definitions = get_def_from_db_C(placed_words, theme) 
 
     definitions_h, definitions_v = {}, {}
     for index, word in enumerate(placed_words, start=1):
@@ -159,6 +241,15 @@ def clear_word_search_session():
 @app.route('/')
 def menu():
     return render_template('menu.html')
+
+@app.route('/get_cards')
+def get_cards():
+    cards = get_random_synonyms()
+    return jsonify(cards)
+
+@app.route('/memory')
+def memory():
+    return render_template('memory.html')
 
 if __name__ == "__main__":
     app.run(debug=True)

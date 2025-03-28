@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
 </head>
 <body>
+    <iframe src="/header/" width="100%"></iframe>
 
     <div class="mode-title">Crossword</div>
 
@@ -14,6 +15,7 @@
         <div class="carousel">
             <div class="mode" style="background-image: url('{{ url_for('static', filename='images/crossword.png') }}');" data-mode="crossword">Crossword</div>
             <div class="mode" style="background-image: url('{{ url_for('static', filename='images/wordSearch.png') }}');" data-mode="word_search_puzzle">Word search puzzle</div>
+            <div class="mode" style="background-image: url('{{ url_for('static', filename='images/memory.png') }}');background-position: center -55px;" data-mode="memory">Memory</div>
         </div>
         
         <div class="controls">
@@ -77,13 +79,20 @@
         });
 
         document.getElementById('playButton').addEventListener('click', () => {
-            sessionStorage.setItem("selectedMode", selectedMode); 
-            window.location.href = "/theme"; 
+            if (selectedMode == "memory") {
+                window.location.href = "/memory"
+            }
+            else {
+                sessionStorage.setItem("selectedMode", selectedMode); 
+                window.location.href = "/theme"; 
+            }
         });
 
 
         resetAutoScroll();
     </script>
+
+    <iframe class="footer" src="/footer" width="100%"></iframe>
 
 </body>
 </html>

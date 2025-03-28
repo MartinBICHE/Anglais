@@ -1,0 +1,155 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+h1 {
+    font-size: 36px;
+    margin-bottom: 0px;
+}
+#menuButton {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+#game-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 20px;
+    width: 90%;
+    margin: 0 auto;
+}
+
+#game-board {
+    display: grid;
+    grid-template-columns: repeat(6, 100px);
+    grid-template-rows: repeat(6, 100px);
+    gap: 25px;
+    justify-content: center;
+    margin-bottom: 50px;
+    transition: transform 0.5s ease;
+}
+
+.card {
+    width: 115px;
+    height: 115px;
+    background-color: #3498db;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 10px;
+    user-select: none;
+    transition: transform 0.5s ease, background-color 0.3s ease;
+}
+
+.card.flipped {
+    background-color: #003559;
+}
+.card.matched {
+    background-color: #27ae60;
+}
+.card.wrong {
+    background-color: #e74c3c;
+}
+
+.card:hover {
+    transform: scale(1.1);
+}
+
+.shake {
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+}
+
+#victory-popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ffffff;
+    padding: 30px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#victory-popup button {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+#victory-popup button:hover {
+    background-color: #2980b9;
+}
+
+p {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+#attempts {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    font-size: 28px;
+    border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+    position: relative;
+    display: inline-block;
+}
+
+.flip-flap {
+    animation: flip 1s ease-in-out forwards;
+}
+
+@keyframes flip {
+    0% {
+        transform: rotateX(0deg);
+    }
+    50% {
+        transform: rotateX(180deg);
+    }
+    100% {
+        transform: rotateX(0deg);
+    }
+}
+
+#attempts:hover {
+    background-color: #2980b9;
+}

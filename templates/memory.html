@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game - Synonyms</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/memory.css') }}">
+</head>
+<body>
+    <button id="menuButton" onclick="confirmReturnToMenu()">⬅ Menu</button>
+    <h1>Memory</h1>
+
+    <div id="game-container">
+        <div id="game-board"></div>
+        <div>
+            <p>Attempts: <span id="attempts">0</span></p>
+        </div>
+    </div>
+
+    <div id="victory-popup">
+        <h2>Congratulations! 🎉</h2>
+        <p>You found all pairs in <span id="final-attempts"></span> attempts!</p>
+        <button onclick="restartGame()">Play Again</button>
+    </div>
+
+    <script>
+        let attempts = 0;
+        let flippedCards = [];
+        let matchedPairs = 0;
+        const totalPairs = 18;
+        let lockBoard = false;
+
+        async function fetchCards() {
+            const response = await fetch('/get_cards');
+            const cards = await response.json();
+            return cards;
+        }
+
+        function createCard(cardData) {
+            const card = document.createElement('div');
+            card.classList.add('card');
+            card.dataset.pairId = cardData.pair_id;
+            card.dataset.word = cardData.word;
+            card.textContent = '?';
+
+            card.addEventListener('click', () => {
+                if (lockBoard || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+                flipCard(card);
+            });
+
+            return card;
+        }
+
+        function flipCard(card) {
+            card.textContent = card.dataset.word;
+            card.classList.add('flipped');
+            flippedCards.push(card);
+
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            lockBoard = true;
+            const attemptsDisplay = document.getElementById('attempts');
+            
+            attemptsDisplay.classList.remove('flip-flap');
+            
+            void attemptsDisplay.offsetWidth; 
+            attemptsDisplay.classList.add('flip-flap');
+            
+            setTimeout(() => {
+                attempts++;
+                attemptsDisplay.textContent = attempts;
+            }, 500); 
+
+            const [card1, card2] = flippedCards;
+
+            if (card1.dataset.pairId === card2.dataset.pairId) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+
+                if (matchedPairs === totalPairs) {
+                    setTimeout(() => showVictoryPopup(), 500);
+                }
+
+                resetBoard();
+            } else {
+                const gameBoard = document.getElementById('game-board');
+                gameBoard.classList.add('shake');
+
+                card1.classList.add('wrong');
+                card2.classList.add('wrong');
+                setTimeout(() => {
+                    gameBoard.classList.remove('shake'); 
+                    card1.classList.remove('wrong');
+                    card2.classList.remove('wrong');
+                    card1.textContent = '?';
+                    card2.textContent = '?';
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    resetBoard();
+                }, 1000);
+            }
+        }
+
+        function resetBoard() {
+            flippedCards = [];
+            lockBoard = false;
+        }
+
+        function showVictoryPopup() {
+            document.getElementById('final-attempts').textContent = attempts;
+            document.getElementById('victory-popup').style.display = 'block';
+        }
+
+        function restartGame() {
+            document.getElementById('victory-popup').style.display = 'none';
+            document.getElementById('game-board').innerHTML = '';
+            attempts = 0;
+            matchedPairs = 0;
+            document.getElementById('attempts').textContent = attempts;
+            startGame();
+        }
+
+        async function startGame() {
+            const cardsData = await fetchCards();
+            const gameBoard = document.getElementById('game-board');
+
+            gameBoard.innerHTML = '';
+            cardsData.forEach(cardData => {
+                const card = createCard(cardData);
+                gameBoard.appendChild(card);
+            });
+        }
+
+        function confirmReturnToMenu() {
+            let saveProgress = confirm("Are you sure you want to return to the menu? Your changes will not be saved.");
+            if (saveProgress) {
+                fetch('/clear_word_search_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '/'; 
+                    } else {
+                        alert("Une erreur est survenue lors de la suppression de la session.");
+                    }
+                })
+                .catch(error => {
+                    alert("Erreur lors de la suppression de la session: " + error);
+                });
+            }
+        }
+
+        startGame();
+    </script>
+
+</body>
+</html>
