@@ -50,12 +50,14 @@ def register():
                 INSERT INTO users
                 VALUES (?, ?)''',
                 (username, hashed_password))
+            conn.commit()
         except sqlite3.IntegrityError:
-            return render_template('register.html', usernameExists=True)
-        conn.commit()
+            conn.close()
+            return render_template("menu.html", isauth=False, usernameExists=True)
         conn.close()
         return redirect('/')
-    return render_template('register.html')
+    return render_template("menu.html", isauth=False)
+
 
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
@@ -69,21 +71,15 @@ def login():
             login_user(user)
             return redirect('/')
         else:
-            return render_template('login.html', badCredentials=True)
-    return render_template('login.html', badCredentials=False)
+            return render_template('menu.html', isauth=False, badCredentials=True)
+    return render_template('menu.html', isauth=False)
+
 
 @app.route('/logout/', methods=['GET'])
 @login_required
 def logout():
     logout_user()
     return redirect('/')
-
-@app.route('/header/', methods=['GET'])
-def header():
-    if current_user.is_authenticated:
-        return render_template("header.html", current_user=current_user, isauth=True)
-    else:
-        return render_template("header.html", current_user=current_user, isauth=False)
 
 @app.route('/footer/', methods=['GET'])
 def footer():
@@ -238,9 +234,12 @@ def clear_word_search_session():
     session.pop("word_search_words", None)
     return '', 204 
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def menu():
-    return render_template('menu.html')
+    if current_user.is_authenticated:
+        return render_template("menu.html", current_user=current_user, isauth=True)
+    else:
+        return render_template("menu.html", current_user=current_user, isauth=False)
 
 @app.route('/get_cards')
 def get_cards():

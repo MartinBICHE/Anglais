@@ -7,50 +7,122 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
 </head>
 <body>
-    <iframe src="/header/" width="100%"></iframe>
-
-    <div class="mode-title">Crossword</div>
-
-    <div class="carousel-container">
-        <div class="carousel">
-            <div class="mode" style="background-image: url('{{ url_for('static', filename='images/crossword.png') }}');" data-mode="crossword">Crossword</div>
-            <div class="mode" style="background-image: url('{{ url_for('static', filename='images/wordSearch.png') }}');" data-mode="word_search_puzzle">Word search puzzle</div>
-            <div class="mode" style="background-image: url('{{ url_for('static', filename='images/memory.png') }}');background-position: center -55px;" data-mode="memory">Memory</div>
-        </div>
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <button class="menu-button" id="menuBtn" onclick="toggleSidebar()">☰ Menu</button>
+    <div class="sidebar" id="sidebar">
+        <button class="close-button" onclick="toggleSidebar()">❮</button>
+        <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Logo">
+        <hr>
+        {% if isauth %}
+            <a href="/profile/">Profil</a>
+            <a href="/logout">Se déconnecter</a>
+        {% else %}
+            <a href="javascript:void(0);" onclick="toggleForm('register')">Register</a>
+            <a href="javascript:void(0);" onclick="toggleForm('login')">Login</a>
+        {% endif %}
         
-        <div class="controls">
-            <button class="arrow left">&#10094;</button>
-            <button class="arrow right">&#10095;</button>
+        <!-- Formulaire d'inscription -->
+        <div id="registerForm" class="form-container">
+            <form action="/register/" method="POST">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <input type="submit" value="Register" class="input3">
+            </form>
         </div>
+
+        <!-- Formulaire de connexion -->
+        <div id="loginForm" class="form-container">
+            <form action="/login/" method="POST">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <input type="submit" value="Login" class="input3">
+            </form>
+        </div>
+
     </div>
 
-    <button class="play-button" id="playButton">Play</button>
+    <div class="content">
+        <div class="title-roulette">
+            <div class="title" id="titleLeft"></div>
+            <div class="title" id="titleCenter"></div>
+            <div class="title" id="titleRight"></div>
+        </div>
+    
+        <div class="carousel-container">
+            <div class="carousel">
+                <div class="mode" style="background-image: url('{{ url_for('static', filename='images/crossword.png') }}');" data-mode="crossword">Crossword</div>
+                <div class="mode" style="background-image: url('{{ url_for('static', filename='images/wordSearch.png') }}');" data-mode="word_search_puzzle">Word search puzzle</div>
+                <div class="mode" style="background-image: url('{{ url_for('static', filename='images/memory.png') }}');background-position: center -55px;" data-mode="memory">Memory</div>
+            </div>
+    
+            <div class="controls">
+                <button class="arrow left">&#10094;</button>
+                <button class="arrow right">&#10095;</button>
+            </div>
+        </div>
+    
+        <button class="play-button" id="playButton">Play</button>
+    </div>
 
     <script>
+        const isAuthenticated = {{ 'true' if isauth else 'false' }};
         let currentIndex = 0;
         const carousel = document.querySelector('.carousel');
-        const modeTitle = document.querySelector('.mode-title');
         const modes = document.querySelectorAll('.mode');
+        const titleLeft = document.getElementById('titleLeft');
+        const titleCenter = document.getElementById('titleCenter');
+        const titleRight = document.getElementById('titleRight');
         let selectedMode = modes[currentIndex].getAttribute('data-mode');
         let autoScrollInterval;
         let inactivityTimeout;
 
-        function updateCarousel() {
-            carousel.style.transform = `translateX(${-currentIndex * 100}%)`;
-            modeTitle.textContent = modes[currentIndex].textContent;
-            selectedMode = modes[currentIndex].getAttribute('data-mode'); 
+        // Fonction pour initialiser les titres dès le début
+        function initializeTitles() {
+            const leftIndex = (currentIndex === 0) ? modes.length - 1 : currentIndex - 1;
+            const rightIndex = (currentIndex === modes.length - 1) ? 0 : currentIndex + 1;
+
+            titleLeft.textContent = modes[leftIndex].textContent;
+            titleCenter.textContent = modes[currentIndex].textContent;
+            titleRight.textContent = modes[rightIndex].textContent;
+
+            // Effet de flou pour les titres gauche et droite
+            titleLeft.style.filter = 'blur(4px)';
+            titleCenter.style.filter = 'none';
+            titleRight.style.filter = 'blur(4px)';
         }
 
+        // Fonction pour mettre à jour le carrousel
+        function updateCarousel() {
+            carousel.style.transform = `translateX(${-currentIndex * 100}%)`;
+            selectedMode = modes[currentIndex].getAttribute('data-mode');
+
+            // Mise à jour des titres
+            const leftIndex = (currentIndex === 0) ? modes.length - 1 : currentIndex - 1;
+            const rightIndex = (currentIndex === modes.length - 1) ? 0 : currentIndex + 1;
+
+            titleLeft.textContent = modes[leftIndex].textContent;
+            titleCenter.textContent = modes[currentIndex].textContent;
+            titleRight.textContent = modes[rightIndex].textContent;
+
+            // Effet de flou
+            titleLeft.style.filter = 'blur(4px)';
+            titleCenter.style.filter = 'none';
+            titleRight.style.filter = 'blur(4px)';
+        }
+
+        // Fonction pour passer au mode suivant
         function nextMode() {
             currentIndex = (currentIndex < modes.length - 1) ? currentIndex + 1 : 0;
             updateCarousel();
         }
 
+        // Fonction pour revenir au mode précédent
         function prevMode() {
             currentIndex = (currentIndex > 0) ? currentIndex - 1 : modes.length - 1;
             updateCarousel();
         }
 
+        // Réinitialiser le défilement automatique
         function resetAutoScroll() {
             clearInterval(autoScrollInterval);
             clearTimeout(inactivityTimeout);
@@ -60,6 +132,7 @@
             }, 20000);
         }
 
+        // Événements des flèches pour changer de mode
         document.querySelector('.left').addEventListener('click', () => {
             prevMode();
             resetAutoScroll();
@@ -70,6 +143,7 @@
             resetAutoScroll();
         });
 
+        // Événements pour la sélection d'un mode par clic
         modes.forEach(mode => {
             mode.addEventListener('click', () => {
                 currentIndex = Array.from(modes).indexOf(mode);
@@ -78,21 +152,75 @@
             });
         });
 
+        // Fonction de démarrage du jeu
         document.getElementById('playButton').addEventListener('click', () => {
-            if (selectedMode == "memory") {
-                window.location.href = "/memory"
+            if (!isAuthenticated) {
+                toggleSidebar();
+
+                const loginLink = Array.from(document.querySelectorAll('.sidebar a'))
+                                    .find(a => a.textContent.trim() === "Se connecter");
+                
+                if (loginLink) {
+                    loginLink.classList.add('blink');
+
+                    setTimeout(() => {
+                        loginLink.classList.remove('blink');
+                    }, 3000);
+                }
+                return;
             }
-            else {
+
+            if (selectedMode == "memory") {
+                window.location.href = "/memory";
+            } else {
                 sessionStorage.setItem("selectedMode", selectedMode); 
                 window.location.href = "/theme"; 
             }
         });
 
+        // Fonction pour afficher/cacher la sidebar
+        function toggleSidebar() {
+            let sidebar = document.getElementById('sidebar');
+            let menuBtn = document.getElementById('menuBtn');
+            let overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            if (sidebar.classList.contains('open')) {
+                menuBtn.style.display = 'none';
+            } else {
+                menuBtn.style.display = 'block';
+            }
+        }
 
-        resetAutoScroll();
+        // Fonction pour basculer entre les formulaires d'inscription et de connexion
+        function toggleForm(formType) {
+            // Cacher tous les formulaires
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'none';
+    
+            // Afficher le formulaire voulu
+            if (formType === 'register') {
+                document.getElementById('registerForm').style.display = 'block';
+            } else if (formType === 'login') {
+                document.getElementById('loginForm').style.display = 'block';
+            }
+        }
+
+        {% if badCredentials %}
+            alert("Incorrect username or password!");
+            toggleSidebar();
+            toggleForm('login');
+        {% endif %}
+
+        {% if usernameExists %}
+            alert("This username is already taken. Please choose another one.");
+            toggleSidebar();
+            toggleForm('register');
+        {% endif %}
+
+        initializeTitles();  // Initialisation des titres
+        resetAutoScroll();  // Initialisation du défilement automatique
     </script>
-
-    <iframe class="footer" src="/footer" width="100%"></iframe>
-
+        
 </body>
 </html>
