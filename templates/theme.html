@@ -20,25 +20,28 @@
     <button class="confirm-button" id="confirmButton">Play</button>
 
     <script>
-        // Fonction pour gérer les options disponibles en fonction du mode sélectionné
         function handleThemeSelection() {
             let selectedMode = sessionStorage.getItem("selectedMode"); 
             let modeSelect = document.getElementById('mode-select');
             
-            // Liste des thèmes à désactiver si le mode est "memory"
-            const restrictedThemes = ["figures of speech","computer parts"];  // Remplace "theme1", "theme2" par les thèmes à restreindre
+            const restrictedThemesMemory = ["figures of speech","computer parts"];
+            const restrictedThemesFillTheBlanks = ["all"]
 
-            // Si le mode "memory" est sélectionné
             if (selectedMode === "memory") {
-                // Désactiver les thèmes restreints
                 for (let i = 0; i < modeSelect.options.length; i++) {
                     let option = modeSelect.options[i];
-                    if (restrictedThemes.includes(option.value)) {
+                    if (restrictedThemesMemory.includes(option.value)) {
+                        option.disabled = true;
+                    }
+                }
+            } else if (selectedMode === "fill_the_blanks") {
+                for (let i = 0; i < modeSelect.options.length; i++) {
+                    let option = modeSelect.options[i];
+                    if (restrictedThemesFillTheBlanks.includes(option.value)) {
                         option.disabled = true;
                     }
                 }
             } else {
-                // Réactiver tous les thèmes si ce n'est pas "memory"
                 for (let i = 0; i < modeSelect.options.length; i++) {
                     let option = modeSelect.options[i];
                     option.disabled = false;
@@ -46,12 +49,10 @@
             }
         }
 
-        // Appel de la fonction lors du chargement de la page pour vérifier l'état initial
         document.addEventListener("DOMContentLoaded", () => {
             handleThemeSelection();
         });
 
-        // Fonction pour rediriger l'utilisateur avec le mode et le thème sélectionné
         document.getElementById('confirmButton').addEventListener('click', () => {
             let selectedTheme = document.getElementById("mode-select").value; 
             let selectedMode = sessionStorage.getItem("selectedMode"); 

@@ -21,7 +21,6 @@
             <a href="javascript:void(0);" onclick="toggleForm('login')">Login</a>
         {% endif %}
         
-        <!-- Formulaire d'inscription -->
         <div id="registerForm" class="form-container">
             <form action="/register/" method="POST">
                 <input type="text" name="username" placeholder="Username" required>
@@ -30,7 +29,6 @@
             </form>
         </div>
 
-        <!-- Formulaire de connexion -->
         <div id="loginForm" class="form-container">
             <form action="/login/" method="POST">
                 <input type="text" name="username" placeholder="Username" required>
@@ -74,7 +72,6 @@
         const titleCenter = document.getElementById('titleCenter');
         const titleRight = document.getElementById('titleRight');
     
-        // Clonage pour boucle infinie
         const firstClone = originalModes[0].cloneNode(true);
         const lastClone = originalModes[originalModes.length - 1].cloneNode(true);
         firstClone.id = 'first-clone';
@@ -149,7 +146,6 @@
             resetAutoScroll();
         });
     
-        // Clic direct sur un mode (mise à jour manuelle de l'index)
         Array.from(carousel.children).forEach((mode, index) => {
             mode.addEventListener('click', () => {
                 currentIndex = index;
@@ -204,7 +200,6 @@
             toggleForm('register');
         {% endif %}
     
-        // Initialisation
         carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
         updateCarousel();
         resetAutoScroll();

@@ -2,7 +2,7 @@ import random
 import sqlite3
 
 def get_random_synonyms(theme):
-    conn = sqlite3.connect('database_final_real.db')
+    conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     
     if theme == "all":

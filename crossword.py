@@ -189,7 +189,7 @@ def generate_html(grid, user_answers=None, feedback_grid=None):
 def get_def_from_db_C(placed_words, theme):
     definitions = {}
     if placed_words:
-        con = sqlite3.connect('database_final_real.db')
+        con = sqlite3.connect('database.db')
         cur = con.cursor()
         
         if theme != "all":

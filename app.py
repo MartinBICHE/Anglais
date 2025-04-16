@@ -23,7 +23,7 @@ class User(UserMixin):
 
     @staticmethod
     def get_user_by_username(username):
-        conn = sqlite3.connect('final_bd.db')
+        conn = sqlite3.connect('database.db')
         user_data = conn.execute('''
             SELECT * FROM users WHERE username=?''',
             (username,)).fetchone()
@@ -44,7 +44,7 @@ def register():
         username = request.form['username']
         password = request.form['password']
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        conn = sqlite3.connect('final_bd.db')
+        conn = sqlite3.connect('database.db')
         try:
             conn.execute('''
                 INSERT INTO users
@@ -91,7 +91,7 @@ def footer():
 @app.route('/crossword/<string:theme>')
 def crossword(theme:str):
     if "grid" not in session or "placed_words" not in session or "word_directions" not in session:
-        with sqlite3.connect('database_final_real.db') as con:
+        with sqlite3.connect('database.db') as con:
             cur = con.cursor()
             if theme == "all":
                 cur.execute("SELECT word, definition FROM EnglishDatabase")
@@ -201,7 +201,7 @@ def choix_theme():
     session.pop("grid", None)
     session.pop("placed_words", None)
     session.pop("word_directions", None)
-    con = sqlite3.connect('database_final_real.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     themes = []
     for row in cur.execute('SELECT DISTINCT theme FROM EnglishDatabase;'):
@@ -255,10 +255,18 @@ def memory(theme:str):
 
 @app.route('/flashcards/<theme>')
 def show_flashcards(theme):
-    conn = sqlite3.connect('database_final_real.db')
-    cur = conn.execute('SELECT word, definition FROM EnglishDatabase WHERE theme = ?', (theme,))
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    
+    if theme == "all":
+        cur.execute('SELECT word, definition FROM EnglishDatabase ORDER BY RANDOM() LIMIT 45')
+    else:
+        cur.execute('SELECT word, definition FROM EnglishDatabase WHERE theme = ? ORDER BY RANDOM()', (theme,))
+    
     cards = cur.fetchall()
+    conn.close()
     return render_template('flashcards.html', theme=theme, cards=cards)
+
 
 @app.route('/fill_the_blanks/<theme>')
 def start_game(theme):
@@ -280,7 +288,7 @@ def next_questionftb():
     if current_q >= 10:
         return redirect(url_for('resultsftb'))
 
-    conn = sqlite3.connect('database_final_real.db')
+    conn = sqlite3.connect('database.db')
     cur = conn.cursor()
 
     placeholders = ','.join('?' for _ in used_sentences)

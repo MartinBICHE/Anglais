@@ -59,7 +59,7 @@ def generate_word_search_html(grid, placed_words):
     return html
 
 def get_words_from_db(theme):
-    with sqlite3.connect('database_final_real.db') as con:
+    with sqlite3.connect('database.db') as con:
         cur = con.cursor()
         if theme == "all":
             cur.execute("SELECT word, definition FROM EnglishDatabase")
@@ -71,7 +71,7 @@ def get_words_from_db(theme):
     return words
 
 def get_def_from_db_WSP(placed_words):
-    con = sqlite3.connect('database_final_real.db')
+    con = sqlite3.connect('database.db')
     cur = con.cursor()
     word_definitions = {} 
     
