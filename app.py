@@ -74,6 +74,9 @@ def login():
             return render_template('menu.html', isauth=False, badCredentials=True)
     return render_template('menu.html', isauth=False)
 
+@app.route('/profile/')
+def profile():
+    return render_template('profile.html')
 
 @app.route('/logout/', methods=['GET'])
 @login_required
@@ -88,13 +91,13 @@ def footer():
 @app.route('/crossword/<string:theme>')
 def crossword(theme:str):
     if "grid" not in session or "placed_words" not in session or "word_directions" not in session:
-        with sqlite3.connect('words.db') as con:
+        with sqlite3.connect('database_final_real.db') as con:
             cur = con.cursor()
             if theme == "all":
-                cur.execute("SELECT word, def FROM words")
+                cur.execute("SELECT word, definition FROM EnglishDatabase")
                 words = [{'word': row[0], 'def': row[1]} for row in cur.fetchall()]
             else : 
-                cur.execute("SELECT word, def FROM words WHERE theme=?", (theme,))
+                cur.execute("SELECT word, definition FROM EnglishDatabase WHERE theme=?", (theme,))
                 words = [{'word': row[0], 'def': row[1]} for row in cur.fetchall()]
         grid, placed_words, word_directions = generate_crossword(words, theme, size=20)
 
@@ -198,10 +201,10 @@ def choix_theme():
     session.pop("grid", None)
     session.pop("placed_words", None)
     session.pop("word_directions", None)
-    con = sqlite3.connect('words.db')
+    con = sqlite3.connect('database_final_real.db')
     cur = con.cursor()
     themes = []
-    for row in cur.execute('SELECT DISTINCT theme FROM words;'):
+    for row in cur.execute('SELECT DISTINCT theme FROM EnglishDatabase;'):
         themes.append(row[0])
     return render_template('theme.html',themes=themes)
 
@@ -241,14 +244,131 @@ def menu():
     else:
         return render_template("menu.html", current_user=current_user, isauth=False)
 
-@app.route('/get_cards')
-def get_cards():
-    cards = get_random_synonyms()
+@app.route('/get_cards/<string:theme>')
+def get_cards(theme:str):
+    cards = get_random_synonyms(theme)
     return jsonify(cards)
 
-@app.route('/memory')
-def memory():
-    return render_template('memory.html')
+@app.route('/memory/<string:theme>')
+def memory(theme:str):
+    return render_template('memory.html',theme=theme)
+
+@app.route('/flashcards/<theme>')
+def show_flashcards(theme):
+    conn = sqlite3.connect('database_final_real.db')
+    cur = conn.execute('SELECT word, definition FROM EnglishDatabase WHERE theme = ?', (theme,))
+    cards = cur.fetchall()
+    return render_template('flashcards.html', theme=theme, cards=cards)
+
+@app.route('/fill_the_blanks/<theme>')
+def start_game(theme):
+    session['theme'] = theme
+    session['current_questionftb'] = 0
+    session['correct'] = 0
+    session['incorrect'] = 0
+    session['history'] = []  
+    session['used_sentences'] = [] 
+
+    return redirect(url_for('next_questionftb'))
+
+@app.route('/next_questionftb')
+def next_questionftb():
+    theme = session.get('theme')
+    current_q = session.get('current_questionftb', 0)
+    used_sentences = session.get('used_sentences', [])
+
+    if current_q >= 10:
+        return redirect(url_for('resultsftb'))
+
+    conn = sqlite3.connect('database_final_real.db')
+    cur = conn.cursor()
+
+    placeholders = ','.join('?' for _ in used_sentences)
+    query = f'''
+        SELECT sentence, answer 
+        FROM sentences 
+        WHERE theme = ? 
+        {'AND sentence NOT IN ({})'.format(placeholders) if used_sentences else ''} 
+        ORDER BY RANDOM() 
+        LIMIT 1
+    '''
+
+    params = [theme] + used_sentences if used_sentences else [theme]
+    cur.execute(query, params)
+    row = cur.fetchone()
+
+    if not row:
+        return "No more unique questions available for this theme."
+
+    sentence, correct_answer = row
+
+    cur.execute('''
+        SELECT word 
+        FROM EnglishDatabase 
+        WHERE theme = ? AND word != ? 
+        ORDER BY RANDOM() 
+        LIMIT 3
+    ''', (theme, correct_answer))
+    distractors = [r[0] for r in cur.fetchall()]
+
+    options = distractors + [correct_answer]
+    random.shuffle(options)
+
+    if isinstance(sentence, str) and sentence.strip():
+        used_sentences.append(sentence)
+    session['used_sentences'] = used_sentences
+
+    
+    session['current_sentence'] = sentence
+    session['current_answer'] = correct_answer
+
+    conn.close()
+
+    return render_template('fill_the_blanks.html',
+                           sentence=sentence,
+                           options=options,
+                           answer=correct_answer,
+                           theme=theme,
+                           progress=f"{current_q + 1}/10")
+
+@app.route('/check_answer', methods=['POST'])
+def check_answer():
+    user_guess = request.form['guess']
+    correct_answer = session.get('current_answer')
+    sentence = session.get('current_sentence')
+
+    correct = user_guess.strip().lower() == correct_answer.strip().lower()
+    if correct:
+        session['correct'] += 1
+        result = "Correct!"
+    else:
+        session['incorrect'] += 1
+        result = f"Oops! The correct answer was: {correct_answer}"
+
+    session['history'].append({
+        'sentence': sentence,
+        'user_guess': user_guess,
+        'correct_answer': correct_answer
+    })
+
+    session['current_questionftb'] += 1
+
+    return redirect(url_for('next_questionftb'))
+
+@app.route('/resultsftb')
+def resultsftb():
+    correct = session.get('correct', 0)
+    incorrect = session.get('incorrect', 0)
+    history = session.get('history', [])
+    all_correct = correct == 10
+    print("DEBUG:", correct, incorrect, all_correct) 
+
+    return render_template('resultsftb.html',
+                           correct=correct,
+                           incorrect=incorrect,
+                           history=history,
+                           all_correct=all_correct)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -31,7 +31,8 @@
         let lockBoard = false;
 
         async function fetchCards() {
-            const response = await fetch('/get_cards');
+            const selectedTheme = "{{ theme }}"
+            const response = await fetch(`/get_cards/${selectedTheme}`);
             const cards = await response.json();
             return cards;
         }

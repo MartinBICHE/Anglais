@@ -2,7 +2,7 @@ import sqlite3
 import random
 
 def create_empty_grid(size):
-    return [[' ' for _ in range(size)] for _ in range(size)]
+    return [['#' for _ in range(size)] for _ in range(size)]
 
 def is_valid_position_for_word(grid, word, row, col, direction, crossing_positions):
     size = len(grid)
@@ -12,17 +12,17 @@ def is_valid_position_for_word(grid, word, row, col, direction, crossing_positio
             current_pos = (row, col + i)
 
             if current_pos not in crossing_positions:
-                if row - 1 >= 0 and grid[row - 1][col + i] != ' ':
+                if row - 1 >= 0 and grid[row - 1][col + i] != '#':
                     return False 
-                if row + 1 < size and grid[row + 1][col + i] != ' ':
+                if row + 1 < size and grid[row + 1][col + i] != '#':
                     return False 
         elif direction == 'V':
             current_pos = (row + i, col)
 
             if current_pos not in crossing_positions:
-                if col - 1 >= 0 and grid[row + i][col - 1] != ' ':
+                if col - 1 >= 0 and grid[row + i][col - 1] != '#':
                     return False
-                if col + 1 < size and grid[row + i][col + 1] != ' ':
+                if col + 1 < size and grid[row + i][col + 1] != '#':
                     return False 
 
     return True
@@ -39,8 +39,8 @@ def find_valid_intersections(grid, word):
                 start_col = col - char_index
                 if start_col > 0 and start_col + len(word) < size - 1:
                     crossing_positions = []
-                    if all(grid[row][start_col + i] in (' ', word[i]) for i in range(len(word))):
-                        if grid[row][start_col - 1] == ' ' and grid[row][start_col + len(word)] == ' ':
+                    if all(grid[row][start_col + i] in ('#', word[i]) for i in range(len(word))):
+                        if grid[row][start_col - 1] == '#' and grid[row][start_col + len(word)] == '#':
                             for i in range(len(word)):
                                 if grid[row][start_col + i] == word[i]:
                                     crossing_positions.append((row, start_col + i))
@@ -49,8 +49,8 @@ def find_valid_intersections(grid, word):
                 start_row = row - char_index
                 if start_row > 0 and start_row + len(word) < size - 1:
                     crossing_positions = []
-                    if all(grid[start_row + i][col] in (' ', word[i]) for i in range(len(word))):
-                        if grid[start_row - 1][col] == ' ' and grid[start_row + len(word)][col] == ' ':
+                    if all(grid[start_row + i][col] in ('#', word[i]) for i in range(len(word))):
+                        if grid[start_row - 1][col] == '#' and grid[start_row + len(word)][col] == '#':
                             for i in range(len(word)):
                                 if grid[start_row + i][col] == word[i]:
                                     crossing_positions.append((start_row + i, col))
@@ -118,7 +118,7 @@ def generate_crossword(words,theme, size=20):
                     break
 
     grid = clean_grid(grid)
-    
+
     return grid, placed_words, word_directions
 
 def generate_html(grid, user_answers=None, feedback_grid=None):
@@ -164,7 +164,13 @@ def generate_html(grid, user_answers=None, feedback_grid=None):
             elif feedback_grid and feedback_grid[row][col] == 'incorrect':
                 color = 'background-color: lightcoral;'
 
-            if cell != ' ' and not cell.isdigit():
+            if cell == ' ':
+                html += f"<td style='width: 40px; height: 40px; border: 1px solid black; background-color: lightgray;'>&nbsp;</td>"
+            elif cell == '#':
+                html += "<td style='width: 40px; height: 40px; border: none; background-color: transparent;'></td>"
+            elif cell == '-':
+                html += f"<td style='width: 40px; height: 40px; font-size: 20px; background-color: lightgray; border: 1px solid black;'>{cell}</td>"
+            elif cell != ' ' and not cell.isdigit():
                 html += f"<td style='width: 40px; height: 40px; font-size: 20px; border: 1px solid black; background-color: lightgray;'>" \
                         f"<input type='text' name='{cell_id}' maxlength='1' value='{user_value}' style='width: 30px; height: 30px; text-align: center; {color} font-size: 20px;' oninput='checkInputs()' />" \
                         f"</td>"
@@ -183,14 +189,14 @@ def generate_html(grid, user_answers=None, feedback_grid=None):
 def get_def_from_db_C(placed_words, theme):
     definitions = {}
     if placed_words:
-        con = sqlite3.connect('words.db')
+        con = sqlite3.connect('database_final_real.db')
         cur = con.cursor()
         
         if theme != "all":
-            query = f"SELECT word, def FROM words WHERE theme = ? AND word IN ({','.join(['?'] * len(placed_words))})"
+            query = f"SELECT word, definition FROM EnglishDatabase WHERE theme = ? AND word IN ({','.join(['?'] * len(placed_words))})"
             cur.execute(query, (theme, *placed_words))
         else:
-            query = f"SELECT word, def FROM words WHERE word IN ({','.join(['?'] * len(placed_words))})"
+            query = f"SELECT word, definition FROM EnglishDatabase WHERE word IN ({','.join(['?'] * len(placed_words))})"
             cur.execute(query, tuple(placed_words))
 
         definitions = {row[0]: row[1] for row in cur.fetchall()}

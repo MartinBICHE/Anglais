@@ -50,9 +50,11 @@
     
         <div class="carousel-container">
             <div class="carousel">
+                <div class="mode" style="background-image: url('{{ url_for('static', filename='images/flashcards.png') }}');" data-mode="flashcards">Flashcards</div>
                 <div class="mode" style="background-image: url('{{ url_for('static', filename='images/crossword.png') }}');" data-mode="crossword">Crossword</div>
                 <div class="mode" style="background-image: url('{{ url_for('static', filename='images/wordSearch.png') }}');" data-mode="word_search_puzzle">Word search puzzle</div>
                 <div class="mode" style="background-image: url('{{ url_for('static', filename='images/memory.png') }}');background-position: center -55px;" data-mode="memory">Memory</div>
+                <div class="mode" style="background-image: url('{{ url_for('static', filename='images/fill_the_blanks.png') }}');" data-mode="fill_the_blanks">Fill the blanks</div>
             </div>
     
             <div class="controls">
@@ -66,161 +68,147 @@
 
     <script>
         const isAuthenticated = {{ 'true' if isauth else 'false' }};
-        let currentIndex = 0;
         const carousel = document.querySelector('.carousel');
-        const modes = document.querySelectorAll('.mode');
+        const originalModes = Array.from(document.querySelectorAll('.mode'));
         const titleLeft = document.getElementById('titleLeft');
         const titleCenter = document.getElementById('titleCenter');
         const titleRight = document.getElementById('titleRight');
-        let selectedMode = modes[currentIndex].getAttribute('data-mode');
+    
+        // Clonage pour boucle infinie
+        const firstClone = originalModes[0].cloneNode(true);
+        const lastClone = originalModes[originalModes.length - 1].cloneNode(true);
+        firstClone.id = 'first-clone';
+        lastClone.id = 'last-clone';
+        carousel.insertBefore(lastClone, carousel.firstChild);
+        carousel.appendChild(firstClone);
+    
+        let currentIndex = 1;
+        let selectedMode = originalModes[0].getAttribute('data-mode');
         let autoScrollInterval;
         let inactivityTimeout;
-
-        // Fonction pour initialiser les titres dès le début
-        function initializeTitles() {
-            const leftIndex = (currentIndex === 0) ? modes.length - 1 : currentIndex - 1;
-            const rightIndex = (currentIndex === modes.length - 1) ? 0 : currentIndex + 1;
-
-            titleLeft.textContent = modes[leftIndex].textContent;
-            titleCenter.textContent = modes[currentIndex].textContent;
-            titleRight.textContent = modes[rightIndex].textContent;
-
-            // Effet de flou pour les titres gauche et droite
-            titleLeft.style.filter = 'blur(4px)';
-            titleCenter.style.filter = 'none';
-            titleRight.style.filter = 'blur(4px)';
-        }
-
-        // Fonction pour mettre à jour le carrousel
+    
         function updateCarousel() {
+            const children = carousel.children;
+            carousel.style.transition = 'transform 0.5s ease-in-out';
             carousel.style.transform = `translateX(${-currentIndex * 100}%)`;
-            selectedMode = modes[currentIndex].getAttribute('data-mode');
-
-            // Mise à jour des titres
-            const leftIndex = (currentIndex === 0) ? modes.length - 1 : currentIndex - 1;
-            const rightIndex = (currentIndex === modes.length - 1) ? 0 : currentIndex + 1;
-
-            titleLeft.textContent = modes[leftIndex].textContent;
-            titleCenter.textContent = modes[currentIndex].textContent;
-            titleRight.textContent = modes[rightIndex].textContent;
-
-            // Effet de flou
+    
+            selectedMode = children[currentIndex].getAttribute('data-mode');
+    
+            const leftIndex = (currentIndex === 0) ? children.length - 2 : currentIndex - 1;
+            const rightIndex = (currentIndex === children.length - 1) ? 1 : currentIndex + 1;
+    
+            titleLeft.textContent = children[leftIndex].textContent;
+            titleCenter.textContent = children[currentIndex].textContent;
+            titleRight.textContent = children[rightIndex].textContent;
+    
             titleLeft.style.filter = 'blur(4px)';
             titleCenter.style.filter = 'none';
             titleRight.style.filter = 'blur(4px)';
         }
-
-        // Fonction pour passer au mode suivant
+    
+        carousel.addEventListener('transitionend', () => {
+            const children = carousel.children;
+            if (children[currentIndex].id === 'first-clone') {
+                carousel.style.transition = 'none';
+                currentIndex = 1;
+                carousel.style.transform = `translateX(${-currentIndex * 100}%)`;
+            } else if (children[currentIndex].id === 'last-clone') {
+                carousel.style.transition = 'none';
+                currentIndex = children.length - 2;
+                carousel.style.transform = `translateX(${-currentIndex * 100}%)`;
+            }
+        });
+    
         function nextMode() {
-            currentIndex = (currentIndex < modes.length - 1) ? currentIndex + 1 : 0;
+            if (currentIndex >= carousel.children.length - 1) return;
+            currentIndex++;
             updateCarousel();
         }
-
-        // Fonction pour revenir au mode précédent
+    
         function prevMode() {
-            currentIndex = (currentIndex > 0) ? currentIndex - 1 : modes.length - 1;
+            if (currentIndex <= 0) return;
+            currentIndex--;
             updateCarousel();
         }
-
-        // Réinitialiser le défilement automatique
+    
         function resetAutoScroll() {
             clearInterval(autoScrollInterval);
             clearTimeout(inactivityTimeout);
-            
             inactivityTimeout = setTimeout(() => {
                 autoScrollInterval = setInterval(nextMode, 3000);
             }, 20000);
         }
-
-        // Événements des flèches pour changer de mode
+    
         document.querySelector('.left').addEventListener('click', () => {
             prevMode();
             resetAutoScroll();
         });
-
+    
         document.querySelector('.right').addEventListener('click', () => {
             nextMode();
             resetAutoScroll();
         });
-
-        // Événements pour la sélection d'un mode par clic
-        modes.forEach(mode => {
+    
+        // Clic direct sur un mode (mise à jour manuelle de l'index)
+        Array.from(carousel.children).forEach((mode, index) => {
             mode.addEventListener('click', () => {
-                currentIndex = Array.from(modes).indexOf(mode);
+                currentIndex = index;
                 updateCarousel();
                 resetAutoScroll();
             });
         });
-
-        // Fonction de démarrage du jeu
+    
         document.getElementById('playButton').addEventListener('click', () => {
             if (!isAuthenticated) {
                 toggleSidebar();
-
                 const loginLink = Array.from(document.querySelectorAll('.sidebar a'))
-                                    .find(a => a.textContent.trim() === "Se connecter");
-                
+                    .find(a => a.textContent.trim() === "Login");
                 if (loginLink) {
                     loginLink.classList.add('blink');
-
-                    setTimeout(() => {
-                        loginLink.classList.remove('blink');
-                    }, 3000);
+                    setTimeout(() => loginLink.classList.remove('blink'), 3000);
                 }
                 return;
             }
-
-            if (selectedMode == "memory") {
-                window.location.href = "/memory";
-            } else {
-                sessionStorage.setItem("selectedMode", selectedMode); 
-                window.location.href = "/theme"; 
-            }
+            sessionStorage.setItem("selectedMode", selectedMode);
+            window.location.href = "/theme";
         });
-
-        // Fonction pour afficher/cacher la sidebar
+    
         function toggleSidebar() {
             let sidebar = document.getElementById('sidebar');
             let menuBtn = document.getElementById('menuBtn');
             let overlay = document.getElementById('overlay');
             sidebar.classList.toggle('open');
             overlay.classList.toggle('active');
-            if (sidebar.classList.contains('open')) {
-                menuBtn.style.display = 'none';
-            } else {
-                menuBtn.style.display = 'block';
-            }
+            menuBtn.style.display = sidebar.classList.contains('open') ? 'none' : 'block';
         }
-
-        // Fonction pour basculer entre les formulaires d'inscription et de connexion
+    
         function toggleForm(formType) {
-            // Cacher tous les formulaires
             document.getElementById('registerForm').style.display = 'none';
             document.getElementById('loginForm').style.display = 'none';
-    
-            // Afficher le formulaire voulu
             if (formType === 'register') {
                 document.getElementById('registerForm').style.display = 'block';
             } else if (formType === 'login') {
                 document.getElementById('loginForm').style.display = 'block';
             }
         }
-
+    
         {% if badCredentials %}
             alert("Incorrect username or password!");
             toggleSidebar();
             toggleForm('login');
         {% endif %}
-
+    
         {% if usernameExists %}
             alert("This username is already taken. Please choose another one.");
             toggleSidebar();
             toggleForm('register');
         {% endif %}
-
-        initializeTitles();  // Initialisation des titres
-        resetAutoScroll();  // Initialisation du défilement automatique
-    </script>
+    
+        // Initialisation
+        carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
+        updateCarousel();
+        resetAutoScroll();
+    </script>    
         
 </body>
 </html>

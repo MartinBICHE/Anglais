@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>{{ theme.title() }} Flashcards</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/flashcards.css') }}">
+</head>
+<body>
+    <button id="menuButton" onclick="confirmReturnToMenu()">⬅ Menu</button>
+
+    <h1 style="text-align:center;">{{ theme.title() }}</h1>
+
+    <div class="flashcard-container">
+        <div class="flashcard" onclick="toggleFlip()">
+            <div class="card-inner" id="card-inner">
+                <div class="card-front" id="card-front"></div>
+                <div class="card-back" id="card-back"></div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button onclick="prevCard()">Previous</button>
+            <button onclick="nextCard()">Next</button>
+        </div>
+    </div>
+
+    <script>
+        const cards = {{ cards|tojson }};
+        let currentCard = 0;
+
+        const front = document.getElementById("card-front");
+        const back = document.getElementById("card-back");
+        const cardInner = document.getElementById("card-inner");
+
+        function showCard(index) {
+            const card = cards[index];
+            front.textContent = card[0]; // word
+            back.textContent = card[1];  // definition
+            cardInner.classList.remove("flipped"); // reset flip
+        }
+
+        function toggleFlip() {
+            cardInner.classList.toggle("flipped");
+        }
+
+        function nextCard() {
+            currentCard = (currentCard + 1) % cards.length;
+            showCard(currentCard);
+        }
+
+        function prevCard() {
+            currentCard = (currentCard - 1 + cards.length) % cards.length;
+            showCard(currentCard);
+        }
+
+        // Initialize first card
+        if (cards.length > 0) {
+            showCard(currentCard);
+        } else {
+            front.textContent = "No cards available";
+            back.textContent = "";
+        }
+    </script>
+    <script>
+        function confirmReturnToMenu() {
+            let saveProgress = confirm("Are you sure you want to return to the menu? Your changes will not be saved.");
+            if (saveProgress) {
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>

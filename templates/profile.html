@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Profil - Statistiques</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+</head>
+<body>
+    <a href="/" class="back-button">← Back to Menu</a>
+
+    <div class="container">
+        <h1>Statistiques de {{ username }}</h1>
+        
+        <div class="tabs">
+            <button class="tab-button" data-game="flashcards">Flashcards</button>
+            <button class="tab-button" data-game="crossword">Crossword</button>
+            <button class="tab-button" data-game="word_search_puzzle">Word Search</button>
+            <button class="tab-button" data-game="memory">Memory</button>
+            <button class="tab-button active" data-game="fill_the_blanks">Fill the blanks</button>
+        </div>
+
+        <div class="tab-content" id="fill_the_blanks">
+            <h2>Fill the blanks</h2>
+            <p>Aucune statistique disponible pour le moment.</p>
+        </div>
+        <div class="tab-content hidden" id="flashcards">
+            <h2>Flashcards</h2>
+            <p>Aucune statistique disponible pour le moment.</p>
+        </div>
+        <div class="tab-content hidden" id="crossword">
+            <h2>Crossword</h2>
+            <p>Aucune statistique disponible pour le moment.</p>
+        </div>
+        <div class="tab-content hidden" id="word_search_puzzle">
+            <h2>Word Search</h2>
+            <p>Aucune statistique disponible pour le moment.</p>
+        </div>
+        <div class="tab-content hidden" id="memory">
+            <h2>Memory</h2>
+            <p>Aucune statistique disponible pour le moment.</p>
+        </div>
+    </div>
+
+    <script>
+        const tabs = document.querySelectorAll('.tab-button');
+        const contents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                const selectedGame = tab.getAttribute('data-game');
+                contents.forEach(content => {
+                    if (content.id === selectedGame) {
+                        content.classList.remove('hidden');
+                    } else {
+                        content.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

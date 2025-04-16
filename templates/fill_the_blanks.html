@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fill the Blanks!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fill_the_blanks.css') }}">
+</head>
+<body>
+    <!-- Menu Button -->
+    <button id="menuButton" onclick="confirmReturnToMenu()">⬅ Menu</button>
+
+    <!-- Header -->
+    <h1>{{ theme.title() }} Quiz</h1>
+    <h2>Progress: {{ progress }}</h2>
+
+    <!-- Instruction -->
+    <p><strong>Complete the sentence:</strong></p>
+
+    <!-- Sentence in a styled blue box -->
+    <div class="question-box">{{ sentence.replace(answer, '_____') }}</div>
+
+    <!-- Answer Buttons -->
+    <form id="answerForm" method="POST" action="{{ url_for('check_answer') }}">
+        {% for option in options %}
+            <button type="button" class="answer-button" value="{{ option }}">{{ option }}</button>
+        {% endfor %}
+        <input type="hidden" name="guess">
+    </form>
+
+    <!-- JS: Submit form when option is clicked -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const buttons = document.querySelectorAll('.answer-button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const form = button.closest('form');
+                    form.querySelector('input[name="guess"]').value = button.value;
+                    form.submit();
+                });
+            });
+        });
+
+        function confirmReturnToMenu() {
+            const confirmExit = confirm("Are you sure you want to return to the menu? Your progress will be lost.");
+            if (confirmExit) {
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>

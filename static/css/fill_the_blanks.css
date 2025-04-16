@@ -1,0 +1,83 @@
+/* Page styling */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f8ff;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* Header */
+h1 {
+    font-size: 2.5rem;
+    margin-top: 40px;
+    color: #2c3e50;
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: #34495e;
+    margin-bottom: 30px;
+}
+
+/* Instructions */
+p {
+    font-size: 1.2rem;
+    color: #333;
+}
+
+/* Highlighted Sentence Box */
+.question-box {
+    background-color: #eae6ff;
+    ;
+    color: #6c5ce7;
+    font-size: 1.6rem;
+    font-weight: bold;
+    padding: 20px;
+    margin: 30px auto;
+    border: 2px solid #6c5ce7;
+    border-radius: 12px;
+    max-width: 700px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Answer Buttons */
+.answer-button {
+    margin: 0 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #6c5ce7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.answer-button:hover {
+    background-color: #42a5f5;
+}
+
+/* Menu Button */
+#menuButton {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    padding: 10px 15px;
+    font-size: 1rem;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+#menuButton:hover {
+    background-color: #c0392b;
+}
+
+/* Form */
+form {
+    margin-top: 30px;
+}

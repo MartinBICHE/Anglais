@@ -2,7 +2,7 @@ import sqlite3
 import random
 
 def create_empty_grid(size):
-    return [[' ' for _ in range(size)] for _ in range(size)]
+    return [['#' for _ in range(size)] for _ in range(size)]
 
 def can_place_word(grid, word, row, col, direction):
     size = len(grid)
@@ -12,7 +12,7 @@ def can_place_word(grid, word, row, col, direction):
         new_row, new_col = row + i * dx, col + i * dy
         if not (0 <= new_row < size and 0 <= new_col < size):
             return False
-        if grid[new_row][new_col] not in (' ', word[i]):
+        if grid[new_row][new_col] not in ('#', word[i]):
             return False
     
     return True
@@ -23,10 +23,10 @@ def place_word(grid, word, row, col, direction):
         grid[row + i * dx][col + i * dy] = word[i]
 
 def fill_remaining_spaces(grid):
-    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ- '
     for row in range(len(grid)):
         for col in range(len(grid[row])):
-            if grid[row][col] == ' ':
+            if grid[row][col] == '#':
                 grid[row][col] = random.choice(alphabet)
 
 def generate_word_search(words, size=15):
@@ -59,24 +59,24 @@ def generate_word_search_html(grid, placed_words):
     return html
 
 def get_words_from_db(theme):
-    with sqlite3.connect('words.db') as con:
+    with sqlite3.connect('database_final_real.db') as con:
         cur = con.cursor()
         if theme == "all":
-            cur.execute("SELECT word, def FROM words")
+            cur.execute("SELECT word, definition FROM EnglishDatabase")
             words = [row[0].upper() for row in cur.fetchall()]
         else : 
-            cur.execute("SELECT word, def FROM words WHERE theme=?", (theme,))
+            cur.execute("SELECT word, definition FROM EnglishDatabase WHERE theme=?", (theme,))
             words = [row[0].upper() for row in cur.fetchall()]
     con.close()
     return words
 
 def get_def_from_db_WSP(placed_words):
-    con = sqlite3.connect('words.db')
+    con = sqlite3.connect('database_final_real.db')
     cur = con.cursor()
     word_definitions = {} 
     
     for word in placed_words:
-        for row in cur.execute('SELECT def FROM words WHERE word=?', (word.lower(),)):
+        for row in cur.execute('SELECT definition FROM EnglishDatabase WHERE word=?', (word.lower(),)):
             word_definitions[word] = row[0]  
     con.close()
     return word_definitions
