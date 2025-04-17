@@ -5,7 +5,6 @@ def get_crossword_stats(user_id=None):
     con = sqlite3.connect('database.db')
     cur = con.cursor()
 
-    # Global stats
     if user_id:
         cur.execute('''
             SELECT 
@@ -29,7 +28,6 @@ def get_crossword_stats(user_id=None):
         ''')
     global_stats = cur.fetchone()
 
-    # Stats by theme
     if user_id:
         cur.execute('''
             SELECT theme, COUNT(*) as total, 
@@ -60,7 +58,6 @@ def get_word_search_stats(user_id):
     con = sqlite3.connect('database.db')
     cur = con.cursor()
 
-    # --- Stats globales (somme sur tous les thèmes) ---
     cur.execute('''
         SELECT 
             SUM(grid_attempted)    AS total_attempted,
@@ -73,7 +70,6 @@ def get_word_search_stats(user_id):
     ''', (user_id,))
     global_stats = cur.fetchone()
 
-    # --- Stats par thème ---
     cur.execute('''
         SELECT 
             theme,
@@ -97,7 +93,6 @@ def get_memory_stats(user_id):
     con = sqlite3.connect('database.db')
     cur = con.cursor()
 
-    # Statistiques globales
     cur.execute('''
         SELECT
             SUM(total_games),
@@ -111,13 +106,11 @@ def get_memory_stats(user_id):
     ''', (user_id,))
     global_stats = cur.fetchone()
 
-    # Recalcul de la moyenne sur les parties gagnées
     if global_stats[1] and global_stats[1] > 0:
         avg_attempts_global = global_stats[4] / global_stats[1]
     else:
         avg_attempts_global = None
 
-    # Statistiques par thème
     cur.execute('''
         SELECT
             theme,
@@ -149,19 +142,17 @@ def get_memory_stats(user_id):
             avg_attempts
         ])
 
-    # Valeurs par défaut si aucune stat globale
     if not global_stats or global_stats[0] is None:
         global_stats = [0, 0, None, None, 0, None]
         avg_attempts_global = None
 
-    # Retourner les données au template
     return {
         "global": [
-            global_stats[0],  # total_played
-            global_stats[1],  # total_won
-            global_stats[2],  # min_attempts
-            global_stats[3],  # max_attempts
-            global_stats[4],  # total_attempts
+            global_stats[0],  
+            global_stats[1],  
+            global_stats[2],  
+            global_stats[3],  
+            global_stats[4],  
             avg_attempts_global
         ],
         "by_theme": theme_stats
@@ -171,7 +162,6 @@ def get_fill_the_blanks_stats(user_id):
     conn = sqlite3.connect('database.db')
     cur = conn.cursor()
 
-    # Statistiques globales (calculer la moyenne, min et max globalement)
     cur.execute('''
         SELECT SUM(games_played), 
                SUM(total_score), 
@@ -182,7 +172,6 @@ def get_fill_the_blanks_stats(user_id):
     ''', (user_id,))
     global_stats = cur.fetchone()
 
-    # Statistiques par thème
     cur.execute('''
         SELECT theme, games_played, min_score, max_score, avg_score
         FROM fill_the_blanks_stats
@@ -193,14 +182,13 @@ def get_fill_the_blanks_stats(user_id):
     conn.close()
 
     if not global_stats or global_stats[0] is None:
-        global_stats = [0, 0, None, None]  # Si aucune partie jouée, on met 0 pour total et None pour min/max.
+        global_stats = [0, 0, None, None]  
 
     total_games_played = global_stats[0]
     total_score = global_stats[1]
     global_min_score = global_stats[2]
     global_max_score = global_stats[3]
 
-    # Calculer la moyenne générale des scores
     avg_score_global = total_score / total_games_played if total_games_played > 0 else 0
 
     return {

@@ -31,9 +31,8 @@
         let lockBoard = false;
         let isNew = true;
 
-        // Récupérer les variables de manière sécurisée
-        const userId = {{ user_id | tojson }};  // Utilisation du filtre tojson pour échapper les données
-        const theme = "{{ theme }}";  // Laisser "theme" entre guillemets car c'est une chaîne
+        const userId = {{ user_id | tojson }}; 
+        const theme = "{{ theme }}";  
 
         async function fetchCards() {
             const response = await fetch(`/get_cards/${theme}`);
@@ -120,12 +119,9 @@
             document.getElementById('final-attempts').textContent = attempts;
             document.getElementById('victory-popup').style.display = 'block';
 
-            // Log des valeurs pour débogage
-            console.log('User ID:', userId);  // Vérifier que user_id est bien défini
-            console.log('Theme:', theme);   // Vérifier que theme est bien défini
+            console.log('User ID:', userId);  
+            console.log('Theme:', theme);   
 
-            // Envoi des statistiques au backend
-            // Envoi des statistiques au backend
             fetch('/save_memory_stats', {
                 method: 'POST',
                 headers: {

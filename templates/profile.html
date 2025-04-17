@@ -12,7 +12,6 @@
         <h1>Statistiques de {{ username }}</h1>
         
         <div class="tabs">
-            <button class="tab-button" data-game="flashcards">Flashcards</button>
             <button class="tab-button" data-game="crossword">Crossword</button>
             <button class="tab-button" data-game="word_search_puzzle">Word Search</button>
             <button class="tab-button" data-game="memory">Memory</button>
@@ -34,12 +33,6 @@
                 moy {{ "%.2f"|format(theme.avg_score) if theme.avg_score else "—" }}
                 </p>
             {% endfor %}
-        </div>
-
-        <!-- Flashcards -->
-        <div class="tab-content hidden" id="flashcards">
-            <h2>Flashcards</h2>
-            <p>Aucune statistique disponible pour le moment.</p>
         </div>
 
         <!-- Crossword -->

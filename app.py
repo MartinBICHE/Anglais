@@ -41,7 +41,6 @@ def load_user(user_id):
         return User(*user_data)
     return None
 
-
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -84,11 +83,11 @@ def login():
             return render_template('menu.html', isauth=False, badCredentials=True)
     return render_template('menu.html', isauth=False)
 
-
 @app.route('/profile/')
 @login_required
 def profile():
     user_id = session.get('user_id')
+    
     cw_stats = get_crossword_stats(user_id)
     wsp_stats = get_word_search_stats(user_id)
     memory_stats = get_memory_stats(user_id)
@@ -103,7 +102,6 @@ def profile():
         ftb_stats=ftb_stats,
         user_id=user_id
     )
-
 
 @app.route('/logout/', methods=['GET'])
 @login_required
@@ -133,14 +131,14 @@ def crossword(theme:str):
         session["placed_words"] = placed_words
         session["word_directions"] = word_directions
 
-        user_id = session.get('user_id')  # récupère l'ID de l'utilisateur connecté
+        user_id = session.get('user_id')  
         con = sqlite3.connect('database.db')
         cur = con.cursor()
         cur.execute('''
             INSERT INTO crossword_stats (user_id, theme, success, attempts)
             VALUES (?, ?, NULL, 0)
         ''', (user_id, theme))
-        session['current_game_id'] = cur.lastrowid  # garde l'ID pour mise à jour plus tard
+        session['current_game_id'] = cur.lastrowid  
         con.commit()
         con.close()
     else:
@@ -149,14 +147,14 @@ def crossword(theme:str):
         placed_words = session["placed_words"]
         word_directions = session["word_directions"]
 
-        user_id = session.get('user_id')  # récupère l'ID de l'utilisateur connecté
+        user_id = session.get('user_id') 
         con = sqlite3.connect('database.db')
         cur = con.cursor()
         cur.execute('''
             INSERT INTO crossword_stats (user_id, theme, success, attempts)
             VALUES (?, ?, NULL, 0)
         ''', (user_id, theme))
-        session['current_game_id'] = cur.lastrowid  # garde l'ID pour mise à jour plus tard
+        session['current_game_id'] = cur.lastrowid
         con.commit()
         con.close()
 
@@ -173,7 +171,6 @@ def crossword(theme:str):
                 definitions_v[f"{index}."] = definitions.get(word, "Définition non trouvée")
 
     return render_template("crossword.html", crossword=html_grid, definitions_h=definitions_h, definitions_v=definitions_v)
-
 
 @app.route('/validate', methods=['POST'])
 def validate():
@@ -209,8 +206,6 @@ def validate():
         feedback_row.append('')
         feedback_grid.append(feedback_row)
 
-
-    # Détermination du message à afficher
     if all_correct:
         message = "<h2 style='color: green;'>Congratulations! All answers are correct 🎉</h2>"
         show_new_grid_button = True
@@ -218,11 +213,10 @@ def validate():
         message = "<h2 style='color: red;'>Some answers are incorrect. Try again!</h2>"
         show_new_grid_button = False
 
-    # Mise à jour de la base de données
     game_id = session.get('current_game_id')
     user_id = session.get('user_id') or None
     attempts = session.get('attempts', 1)
-    success = all_correct  # booléen : True ou False
+    success = all_correct 
 
     if game_id:
         con = sqlite3.connect('database.db')
@@ -281,7 +275,6 @@ def word_search_puzzle(theme: str):
         words = get_words_from_db(theme)
         grid, placed_words = generate_word_search(words, size=15)
 
-        # === Comptage immédiat de la grille tentée ===
         user_id = session.get('user_id')
         con = sqlite3.connect('database.db')
         cur = con.cursor()
@@ -353,22 +346,19 @@ def memory(theme: str):
     
     con = sqlite3.connect('database.db')
     cur = con.cursor()
-    
-    # Vérifier si l'enregistrement existe pour cet utilisateur et ce thème
+
     cur.execute('''
         SELECT user_id, theme FROM memory_stats WHERE user_id = ? AND theme = ?
     ''', (user_id, theme))
     row = cur.fetchone()
 
     if row:
-        # Si l'enregistrement existe, on incrémente le nombre de parties
         cur.execute('''
             UPDATE memory_stats
             SET total_games = total_games + 1
             WHERE user_id = ? AND theme = ?
         ''', (user_id, theme))
     else:
-        # Si l'enregistrement n'existe pas, on crée un nouvel enregistrement avec des valeurs par défaut
         cur.execute('''
             INSERT INTO memory_stats (
                 user_id, theme, total_games, victories, 
@@ -394,7 +384,6 @@ def show_flashcards(theme):
     cards = cur.fetchall()
     conn.close()
     return render_template('flashcards.html', theme=theme, cards=cards)
-
 
 @app.route('/fill_the_blanks/<theme>')
 def start_game(theme):
@@ -454,7 +443,6 @@ def next_questionftb():
         used_sentences.append(sentence)
     session['used_sentences'] = used_sentences
 
-    
     session['current_sentence'] = sentence
     session['current_answer'] = correct_answer
 
@@ -497,14 +485,12 @@ def resultsftb():
     incorrect = session.get('incorrect', 0)
     history = session.get('history', [])
     all_correct = correct == 10
-    # print("DEBUG:", correct, incorrect, all_correct) 
 
-    user_id = current_user.id  # Si tu utilises Flask-Login
+    user_id = current_user.id  
 
     con = sqlite3.connect('database.db')
     cur = con.cursor()
 
-    # Vérifie si une entrée existe déjà
     cur.execute('''
         SELECT min_score, max_score, total_score, games_played
         FROM fill_the_blanks_stats
@@ -545,12 +531,12 @@ def update_word_search_stats():
     user_id = session.get('user_id')
     data = request.get_json()
     theme   = data['theme']
-    elapsed = data['time']      # en secondes
+    elapsed = data['time'] 
     success = data.get('success', True)
 
     con = sqlite3.connect('database.db')
     cur = con.cursor()
-    # Vérifie s’il existe déjà une ligne pour user+thème
+    
     cur.execute('''
         SELECT id, grid_attempted, grid_successful, time_min, time_max, time_avg
           FROM word_search_stats
@@ -573,7 +559,6 @@ def update_word_search_stats():
              WHERE id=?
         ''', (att, succ, tmin, tmax, tavg, stat_id))
     else:
-        # première partie pour ce thème
         cur.execute('''
             INSERT INTO word_search_stats
                 (user_id, theme, grid_attempted, grid_successful, time_min, time_max, time_avg)
@@ -619,7 +604,6 @@ def save_memory_stats():
              WHERE user_id = ? AND theme = ?
         ''', (victories, min_a, max_a, total_a, avg_a, user_id, theme))
     else:
-        # En théorie, cette ligne ne devrait jamais être atteinte si total_games est déjà incrémenté dans /memory/
         cur.execute('''
             INSERT INTO memory_stats (
                 user_id, theme, total_games, victories,
@@ -631,8 +615,6 @@ def save_memory_stats():
     con.close()
 
     return jsonify({'status': 'success'})
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)

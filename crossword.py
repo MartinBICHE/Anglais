@@ -204,8 +204,6 @@ def get_def_from_db_C(placed_words, theme):
     
     return definitions
 
-
-
 def clean_grid(grid):
     while grid and all(cell == ' ' for cell in grid[0]):
         grid.pop(0)

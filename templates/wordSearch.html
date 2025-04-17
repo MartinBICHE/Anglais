@@ -113,7 +113,6 @@
 
                     let cellContent = grid[r][c].innerText;
 
-                    // Compare les caractères, en tenant compte des espaces
                     if (cellContent !== word[i] && (cellContent.trim() !== "" || word[i] !== " ")) {
                         found = false;
                         break;

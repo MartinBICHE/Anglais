@@ -14,8 +14,8 @@
         <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Logo">
         <hr>
         {% if isauth %}
-            <a href="/profile/">Profil</a>
-            <a href="/logout">Se déconnecter</a>
+            <a href="/profile/">Profile</a>
+            <a href="/logout">Log out</a>
         {% else %}
             <a href="javascript:void(0);" onclick="toggleForm('register')">Register</a>
             <a href="javascript:void(0);" onclick="toggleForm('login')">Login</a>
