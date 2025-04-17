@@ -19,25 +19,71 @@
             <button class="tab-button active" data-game="fill_the_blanks">Fill the blanks</button>
         </div>
 
-        <div class="tab-content" id="fill_the_blanks">
+        <!-- Fill the blanks -->
+        <div class="tab-content hidden" id="fill_the_blanks">
             <h2>Fill the blanks</h2>
             <p>Aucune statistique disponible pour le moment.</p>
         </div>
+
+        <!-- Flashcards -->
         <div class="tab-content hidden" id="flashcards">
             <h2>Flashcards</h2>
             <p>Aucune statistique disponible pour le moment.</p>
         </div>
+
+        <!-- Crossword -->
         <div class="tab-content hidden" id="crossword">
             <h2>Crossword</h2>
-            <p>Aucune statistique disponible pour le moment.</p>
+            <p>Parties réussies : {{ stats.global[1] }} / {{ stats.global[0] }}</p>
+            <p>Tentatives : min {{ stats.global[2] }}, max {{ stats.global[3] }}, moyenne {{ stats.global[4] }}</p>
+
+            <h3>Par thème</h3>
+            {% for theme in stats.by_theme %}
+                <p><strong>{{ theme[0] }}</strong> — {{ theme[2] }} / {{ theme[1] }} réussites, {{ theme[3] }} tentatives en moyenne</p>
+            {% endfor %}
         </div>
+
+        <!-- Word Search -->
         <div class="tab-content hidden" id="word_search_puzzle">
             <h2>Word Search</h2>
-            <p>Aucune statistique disponible pour le moment.</p>
+            <p>Grilles réussies : {{ wsp_stats.global[1] }} / {{ wsp_stats.global[0] }}</p>
+            <p>Temps : min {{ wsp_stats.global[2]|int // 60 }}min {{ wsp_stats.global[2]|int % 60 }}s, 
+                max {{ wsp_stats.global[3]|int // 60 }}min {{ wsp_stats.global[3]|int % 60 }}s, 
+                moyenne {{ wsp_stats.global[4]|int // 60 }}min {{ wsp_stats.global[4]|int % 60 }}s</p>
+        
+            <h3>Par thème</h3>
+            {% for theme_stat in wsp_stats.by_theme %}
+                <p>
+                    <strong>{{ theme_stat[0] }}</strong> — 
+                    {{ theme_stat[2] }} / {{ theme_stat[1] }} réussites, 
+                    min {{ theme_stat[3]|int // 60 }}min {{ theme_stat[3]|int % 60 }}s, 
+                    max {{ theme_stat[4]|int // 60 }}min {{ theme_stat[4]|int % 60 }}s, 
+                    moy {{ theme_stat[5]|int // 60 }}min {{ theme_stat[5]|int % 60 }}s
+                </p>
+            {% endfor %}
         </div>
+        
+        <!-- Memory -->
         <div class="tab-content hidden" id="memory">
             <h2>Memory</h2>
-            <p>Aucune statistique disponible pour le moment.</p>
+            <p>Parties gagnées : {{ memory_stats.global[1] }} / {{ memory_stats.global[0] }}</p>
+            <p>Tentatives : 
+                min {{ memory_stats.global[2] if memory_stats.global[2] is not none else "—" }}, 
+                max {{ memory_stats.global[3] if memory_stats.global[3] is not none else "—" }}, 
+                moyenne {{ "%.2f"|format(memory_stats.global[5]) if memory_stats.global[5] is not none else "—" }}
+            </p>
+            
+            <h3>Par thème</h3>
+            {% for theme in memory_stats.by_theme %}
+                <p>
+                    <strong>{{ theme[0] }}</strong> — 
+                    {{ theme[2] }} / {{ theme[1] }} réussites, 
+                    tentatives : 
+                    min {{ theme[3] if theme[3] is not none else "—" }}, 
+                    max {{ theme[4] if theme[4] is not none else "—" }}, 
+                    moy {{ "%.2f"|format(theme[6]) if theme[6] is not none else "—" }}
+                </p>
+            {% endfor %}
         </div>
     </div>
 

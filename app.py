@@ -6,6 +6,7 @@ from flask_bcrypt import *
 from crossword import *
 from wordSearchPuzzle import *
 from memory import *
+from statistiques import *
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "MySuperSecretKey"
@@ -13,28 +14,33 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 
 class User(UserMixin):
-    def __init__(self, username, password):
+    def __init__(self, id, username, password):
+        self.id = id
         self.username = username
         self.password = password
-
-    @property
-    def id(self):
-        return self.username
 
     @staticmethod
     def get_user_by_username(username):
         conn = sqlite3.connect('database.db')
         user_data = conn.execute('''
-            SELECT * FROM users WHERE username=?''',
+            SELECT id, username, password FROM users WHERE username=?''',
             (username,)).fetchone()
         conn.close()
         if user_data:
-            return User(user_data[0], user_data[1])
+            return User(user_data[0], user_data[1], user_data[2])
         return None
 
 @login_manager.user_loader
-def load_user(username):
-    return User.get_user_by_username(username)
+def load_user(user_id):
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+    cur.execute("SELECT id, username, password FROM users WHERE id = ?", (user_id,))
+    user_data = cur.fetchone()
+    conn.close()
+    if user_data:
+        return User(*user_data)
+    return None
+
 
 @app.route('/register/', methods=['GET', 'POST'])
 def register():
@@ -46,18 +52,19 @@ def register():
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         conn = sqlite3.connect('database.db')
         try:
-            conn.execute('''
-                INSERT INTO users
-                VALUES (?, ?)''',
-                (username, hashed_password))
+            conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed_password))
             conn.commit()
+
+            cur = conn.cursor()
+            cur.execute('SELECT id FROM users WHERE username = ?', (username,))
+            user_id = cur.fetchone()[0]
+            session['user_id'] = user_id 
         except sqlite3.IntegrityError:
             conn.close()
             return render_template("menu.html", isauth=False, usernameExists=True)
         conn.close()
         return redirect('/')
     return render_template("menu.html", isauth=False)
-
 
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
@@ -69,14 +76,32 @@ def login():
         user = User.get_user_by_username(username)
         if user and bcrypt.check_password_hash(user.password, password):
             login_user(user)
+
+            session['user_id'] = user.id
+
             return redirect('/')
         else:
             return render_template('menu.html', isauth=False, badCredentials=True)
     return render_template('menu.html', isauth=False)
 
+
 @app.route('/profile/')
+@login_required
 def profile():
-    return render_template('profile.html')
+    user_id = session.get('user_id')
+    cw_stats = get_crossword_stats(user_id)
+    wsp_stats = get_word_search_stats(user_id)
+    memory_stats = get_memory_stats(user_id)
+
+    return render_template(
+        "profile.html",
+        username=current_user.username,
+        stats=cw_stats,
+        wsp_stats=wsp_stats,
+        memory_stats=memory_stats,
+        user_id=user_id
+    )
+
 
 @app.route('/logout/', methods=['GET'])
 @login_required
@@ -105,11 +130,33 @@ def crossword(theme:str):
         session["grid"] = grid
         session["placed_words"] = placed_words
         session["word_directions"] = word_directions
+
+        user_id = session.get('user_id')  # récupère l'ID de l'utilisateur connecté
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('''
+            INSERT INTO crossword_stats (user_id, theme, success, attempts)
+            VALUES (?, ?, NULL, 0)
+        ''', (user_id, theme))
+        session['current_game_id'] = cur.lastrowid  # garde l'ID pour mise à jour plus tard
+        con.commit()
+        con.close()
     else:
         theme = session["theme"]
         grid = session["grid"]
         placed_words = session["placed_words"]
         word_directions = session["word_directions"]
+
+        user_id = session.get('user_id')  # récupère l'ID de l'utilisateur connecté
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('''
+            INSERT INTO crossword_stats (user_id, theme, success, attempts)
+            VALUES (?, ?, NULL, 0)
+        ''', (user_id, theme))
+        session['current_game_id'] = cur.lastrowid  # garde l'ID pour mise à jour plus tard
+        con.commit()
+        con.close()
 
     html_grid = generate_html(grid)
 
@@ -135,6 +182,7 @@ def validate():
     placed_words = session["placed_words"]
     word_directions = session["word_directions"]
     theme = session["theme"] 
+    session['attempts'] = session.get('attempts', 0) + 1
 
     user_answers = {key: value for key, value in request.form.items()}
 
@@ -146,24 +194,21 @@ def validate():
         for col in range(len(grid[row])):
             cell_value = grid[row][col]
             cell_id = f"cell_{row}_{col}"
+            user_value = user_answers.get(cell_id, '').strip()
 
-            user_value = user_answers.get(cell_id, '')
-
-            if cell_value != ' ' and not cell_value.isdigit():
-                if user_value.isalpha():
-                    if user_value.lower() == cell_value.lower():
-                        feedback_row.append('correct')
-                    else:
-                        feedback_row.append('incorrect')
-                        all_correct = False
+            if cell_value.isalpha():
+                if user_value.lower() == cell_value.lower():
+                    feedback_row.append('correct')
                 else:
                     feedback_row.append('incorrect')
                     all_correct = False
             else:
                 feedback_row.append('')
-
+        feedback_row.append('')
         feedback_grid.append(feedback_row)
 
+
+    # Détermination du message à afficher
     if all_correct:
         message = "<h2 style='color: green;'>Congratulations! All answers are correct 🎉</h2>"
         show_new_grid_button = True
@@ -171,11 +216,28 @@ def validate():
         message = "<h2 style='color: red;'>Some answers are incorrect. Try again!</h2>"
         show_new_grid_button = False
 
+    # Mise à jour de la base de données
+    game_id = session.get('current_game_id')
+    user_id = session.get('user_id') or None
+    attempts = session.get('attempts', 1)
+    success = all_correct  # booléen : True ou False
+
+    if game_id:
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('''
+            UPDATE crossword_stats
+            SET success = ?, attempts = ?
+            WHERE id = ?
+        ''', (success, attempts, game_id))
+        con.commit()
+        con.close()
+
     html_grid = generate_html(grid, user_answers, feedback_grid) if not all_correct else ""
 
     definitions = get_def_from_db_C(placed_words, theme) 
-
     definitions_h, definitions_v = {}, {}
+
     for index, word in enumerate(placed_words, start=1):
         if word in word_directions:
             (definitions_h if word_directions[word] == 'H' else definitions_v)[f"{index}."] = definitions.get(word, "Definition not found")
@@ -191,6 +253,7 @@ def validate():
 
 @app.route('/new_grid')
 def new_grid():
+    session['attempts'] = 0
     session.pop("grid", None)
     session.pop("placed_words", None)
     session.pop("word_directions", None)
@@ -209,21 +272,52 @@ def choix_theme():
     return render_template('theme.html',themes=themes)
 
 @app.route('/word_search_puzzle/<string:theme>')
-def word_search_puzzle(theme:str):
+def word_search_puzzle(theme: str):
+    is_new = False
     if "word_search_grid" not in session or "word_search_words" not in session:
+        is_new = True
         words = get_words_from_db(theme)
         grid, placed_words = generate_word_search(words, size=15)
+
+        # === Comptage immédiat de la grille tentée ===
+        user_id = session.get('user_id')
+        con = sqlite3.connect('database.db')
+        cur = con.cursor()
+        cur.execute('''
+            SELECT id, grid_attempted 
+              FROM word_search_stats 
+             WHERE user_id = ? AND theme = ?
+        ''', (user_id, theme))
+        row = cur.fetchone()
+
+        if row:
+            stat_id, attempted = row
+            cur.execute('''
+                UPDATE word_search_stats
+                   SET grid_attempted = ?
+                 WHERE id = ?
+            ''', (attempted + 1, stat_id))
+        else:
+            cur.execute('''
+                INSERT INTO word_search_stats
+                    (user_id, theme, grid_attempted, grid_successful, time_min, time_max, time_avg)
+                VALUES (?, ?, 1, 0, NULL, NULL, NULL)
+            ''', (user_id, theme))
+
+        con.commit()
+        con.close()
 
         session["word_search_grid"] = grid
         session["word_search_words"] = placed_words
     else:
+        is_new = True
         grid = session["word_search_grid"]
         placed_words = session["word_search_words"]
 
     definitions = get_def_from_db_WSP(placed_words)
     html_grid = generate_word_search_html(grid, placed_words)
     
-    return render_template("wordSearch.html", mot_mele=html_grid, definitions=definitions)
+    return render_template("wordSearch.html", mot_mele=html_grid, definitions=definitions, theme=theme)
 
 @app.route('/new_word_search_puzzle')
 def new_word_search_puzzle():
@@ -250,8 +344,40 @@ def get_cards(theme:str):
     return jsonify(cards)
 
 @app.route('/memory/<string:theme>')
-def memory(theme:str):
-    return render_template('memory.html',theme=theme)
+def memory(theme: str):
+    user_id = session.get('user_id')
+    if user_id is None:
+        return redirect(url_for('login'))
+    
+    con = sqlite3.connect('database.db')
+    cur = con.cursor()
+    
+    # Vérifier si l'enregistrement existe pour cet utilisateur et ce thème
+    cur.execute('''
+        SELECT user_id, theme FROM memory_stats WHERE user_id = ? AND theme = ?
+    ''', (user_id, theme))
+    row = cur.fetchone()
+
+    if row:
+        # Si l'enregistrement existe, on incrémente le nombre de parties
+        cur.execute('''
+            UPDATE memory_stats
+            SET total_games = total_games + 1
+            WHERE user_id = ? AND theme = ?
+        ''', (user_id, theme))
+    else:
+        # Si l'enregistrement n'existe pas, on crée un nouvel enregistrement avec des valeurs par défaut
+        cur.execute('''
+            INSERT INTO memory_stats (
+                user_id, theme, total_games, victories, 
+                min_attempts, max_attempts, total_attempts, avg_attempts
+            ) VALUES (?, ?, 1, 0, NULL, NULL, 0, NULL)
+        ''', (user_id, theme))
+
+    con.commit()
+    con.close()
+
+    return render_template('memory.html', theme=theme, user_id=user_id)
 
 @app.route('/flashcards/<theme>')
 def show_flashcards(theme):
@@ -376,6 +502,100 @@ def resultsftb():
                            incorrect=incorrect,
                            history=history,
                            all_correct=all_correct)
+
+@app.route('/update_word_search_stats', methods=['POST'])
+@login_required
+def update_word_search_stats():
+    user_id = session.get('user_id')
+    data = request.get_json()
+    theme   = data['theme']
+    elapsed = data['time']      # en secondes
+    success = data.get('success', True)
+
+    con = sqlite3.connect('database.db')
+    cur = con.cursor()
+    # Vérifie s’il existe déjà une ligne pour user+thème
+    cur.execute('''
+        SELECT id, grid_attempted, grid_successful, time_min, time_max, time_avg
+          FROM word_search_stats
+         WHERE user_id=? AND theme=?
+    ''', (user_id, theme))
+    row = cur.fetchone()
+
+    if row:
+        stat_id, att, succ, tmin, tmax, tavg = row
+        att += 1
+        if success:
+            succ += 1
+            tmin = elapsed if tmin is None or elapsed < tmin else tmin
+            tmax = elapsed if tmax is None or elapsed > tmax else tmax
+            tavg = ((tavg * (succ - 1)) + elapsed) / succ if tavg is not None else elapsed
+
+        cur.execute('''
+            UPDATE word_search_stats
+               SET grid_attempted=?, grid_successful=?, time_min=?, time_max=?, time_avg=?
+             WHERE id=?
+        ''', (att, succ, tmin, tmax, tavg, stat_id))
+    else:
+        # première partie pour ce thème
+        cur.execute('''
+            INSERT INTO word_search_stats
+                (user_id, theme, grid_attempted, grid_successful, time_min, time_max, time_avg)
+            VALUES (?, ?, 1, ?, ?, ?, ?)
+        ''', (user_id, theme, 1 if success else 0, elapsed, elapsed, elapsed))
+
+    con.commit()
+    con.close()
+    return jsonify({'status': 'success'})
+
+@app.route('/save_memory_stats', methods=['POST'])
+def save_memory_stats():
+    data = request.get_json()
+
+    user_id = data.get('user_id')
+    theme = data.get('theme')
+    attempts = data.get('attempts')
+
+    if not all([user_id, theme, attempts]):
+        return jsonify({'status': 'error', 'message': 'Missing data'}), 400
+
+    con = sqlite3.connect('database.db')
+    cur = con.cursor()
+
+    cur.execute('''
+        SELECT total_games, victories, min_attempts, max_attempts, total_attempts
+          FROM memory_stats
+         WHERE user_id = ? AND theme = ?
+    ''', (user_id, theme))
+    row = cur.fetchone()
+
+    if row:
+        total_games, victories, min_a, max_a, total_a = row
+        victories += 1
+        min_a = min(min_a, attempts) if min_a is not None else attempts
+        max_a = max(max_a, attempts) if max_a is not None else attempts
+        total_a += attempts
+        avg_a = total_a / total_games
+
+        cur.execute('''
+            UPDATE memory_stats
+               SET victories = ?, min_attempts = ?, max_attempts = ?, total_attempts = ?, avg_attempts = ?
+             WHERE user_id = ? AND theme = ?
+        ''', (victories, min_a, max_a, total_a, avg_a, user_id, theme))
+    else:
+        # En théorie, cette ligne ne devrait jamais être atteinte si total_games est déjà incrémenté dans /memory/
+        cur.execute('''
+            INSERT INTO memory_stats (
+                user_id, theme, total_games, victories,
+                min_attempts, max_attempts, total_attempts, avg_attempts
+            ) VALUES (?, ?, 1, 1, ?, ?, ?, ?)
+        ''', (user_id, theme, attempts, attempts, attempts, attempts))
+
+    con.commit()
+    con.close()
+
+    return jsonify({'status': 'success'})
+
 
 
 if __name__ == "__main__":

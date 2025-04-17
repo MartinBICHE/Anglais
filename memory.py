@@ -33,6 +33,6 @@ def get_random_synonyms(theme):
         
         cards.append({'word': word, 'pair_id': pair_id, 'type': 'word'})
         cards.append({'word': synonym, 'pair_id': pair_id, 'type': 'synonym'})
-    
+
     random.shuffle(cards)
     return cards

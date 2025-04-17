@@ -24,14 +24,12 @@
             </ul>
         </div>
     </div>
-    
-
-    <br>
-    <a href="{{ url_for('new_word_search_puzzle') }}" class="btn">Nouvelle grille</a>
 
     <script>
+        window.startTime = Date.now();
+        window.theme = "{{ theme }}";
         let selectedWord = "";
-    
+        
         document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', function() {
                 if (this.checked) {
@@ -92,35 +90,43 @@
             let table = startCell.closest("table");
             let rows = [...table.querySelectorAll("tr")];
             let grid = rows.map(row => [...row.querySelectorAll("td")]);
-    
+
             let rowIndex = grid.findIndex(row => row.includes(startCell));
             let colIndex = grid[rowIndex].indexOf(startCell);
-    
+
             let directions = [
                 [1, 0], [0, 1], [1, 1], [-1, 1],
                 [1, -1], [-1, -1], [0, -1], [-1, 0]
             ];
-    
+
             for (let [dx, dy] of directions) {
                 let found = true;
                 let cellsToHighlight = [];
                 for (let i = 0; i < word.length; i++) {
                     let r = rowIndex + i * dx;
                     let c = colIndex + i * dy;
-    
-                    if (r < 0 || r >= grid.length || c < 0 || c >= grid[r].length || 
-                        grid[r][c].innerText.replace(/\s+/g, "").toUpperCase() !== word[i]) {
+
+                    if (r < 0 || r >= grid.length || c < 0 || c >= grid[r].length) {
                         found = false;
                         break;
                     }
+
+                    let cellContent = grid[r][c].innerText;
+
+                    // Compare les caractères, en tenant compte des espaces
+                    if (cellContent !== word[i] && (cellContent.trim() !== "" || word[i] !== " ")) {
+                        found = false;
+                        break;
+                    }
+
                     cellsToHighlight.push(grid[r][c]);
                 }
-    
+
                 if (found) {
                     return cellsToHighlight;
                 }
             }
-    
+
             return null;
         }
     
@@ -147,7 +153,24 @@
                 .every(checkbox => checkbox.checked);
 
             if (allChecked) {
-                alert("Bravo ! Vous avez trouvé tous les mots !");
+                let elapsed = (Date.now() - window.startTime) / 1000;
+                fetch('/update_word_search_stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        theme: window.theme,
+                        time: elapsed,
+                        success: true
+                    })
+                })
+                .then(resp => resp.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert("Bravo ! Statistiques enregistrées 🎉");
+                    } else {
+                        alert("Erreur enregistrement stats");
+                    }
+                });
             }
         }
 

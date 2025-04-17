@@ -29,10 +29,14 @@
         let matchedPairs = 0;
         const totalPairs = 18;
         let lockBoard = false;
+        let isNew = true;
+
+        // Récupérer les variables de manière sécurisée
+        const userId = {{ user_id | tojson }};  // Utilisation du filtre tojson pour échapper les données
+        const theme = "{{ theme }}";  // Laisser "theme" entre guillemets car c'est une chaîne
 
         async function fetchCards() {
-            const selectedTheme = "{{ theme }}"
-            const response = await fetch(`/get_cards/${selectedTheme}`);
+            const response = await fetch(`/get_cards/${theme}`);
             const cards = await response.json();
             return cards;
         }
@@ -115,6 +119,35 @@
         function showVictoryPopup() {
             document.getElementById('final-attempts').textContent = attempts;
             document.getElementById('victory-popup').style.display = 'block';
+
+            // Log des valeurs pour débogage
+            console.log('User ID:', userId);  // Vérifier que user_id est bien défini
+            console.log('Theme:', theme);   // Vérifier que theme est bien défini
+
+            // Envoi des statistiques au backend
+            // Envoi des statistiques au backend
+            fetch('/save_memory_stats', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    theme: theme,
+                    attempts: attempts
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log('Statistiques memory enregistrées ✅');
+                } else {
+                    console.log('Erreur lors de l\'enregistrement des stats ❌');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur fetch:', error);
+            });
         }
 
         function restartGame() {
