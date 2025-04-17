@@ -92,6 +92,7 @@ def profile():
     cw_stats = get_crossword_stats(user_id)
     wsp_stats = get_word_search_stats(user_id)
     memory_stats = get_memory_stats(user_id)
+    ftb_stats = get_fill_the_blanks_stats(user_id)
 
     return render_template(
         "profile.html",
@@ -99,6 +100,7 @@ def profile():
         stats=cw_stats,
         wsp_stats=wsp_stats,
         memory_stats=memory_stats,
+        ftb_stats=ftb_stats,
         user_id=user_id
     )
 
@@ -495,7 +497,41 @@ def resultsftb():
     incorrect = session.get('incorrect', 0)
     history = session.get('history', [])
     all_correct = correct == 10
-    print("DEBUG:", correct, incorrect, all_correct) 
+    # print("DEBUG:", correct, incorrect, all_correct) 
+
+    user_id = current_user.id  # Si tu utilises Flask-Login
+
+    con = sqlite3.connect('database.db')
+    cur = con.cursor()
+
+    # Vérifie si une entrée existe déjà
+    cur.execute('''
+        SELECT min_score, max_score, total_score, games_played
+        FROM fill_the_blanks_stats
+        WHERE user_id = ? AND theme = ?
+    ''', (user_id, session.get('theme')))
+    row = cur.fetchone()
+
+    if row:
+        min_score = min(row[0], correct) if row[0] is not None else correct
+        max_score = max(row[1], correct)
+        total_score = row[2] + correct
+        games_played = row[3] + 1
+        avg_score = total_score / games_played
+
+        cur.execute('''
+            UPDATE fill_the_blanks_stats
+            SET min_score = ?, max_score = ?, total_score = ?, games_played = ?, avg_score = ?
+            WHERE user_id = ? AND theme = ?
+        ''', (min_score, max_score, total_score, games_played, avg_score, user_id, session.get('theme')))
+    else:
+        cur.execute('''
+            INSERT INTO fill_the_blanks_stats (user_id, theme, min_score, max_score, total_score, games_played, avg_score)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (user_id, session.get('theme'), correct, correct, correct, 1, correct))
+
+    con.commit()
+    con.close()
 
     return render_template('resultsftb.html',
                            correct=correct,

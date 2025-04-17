@@ -166,3 +166,58 @@ def get_memory_stats(user_id):
         ],
         "by_theme": theme_stats
     }
+
+def get_fill_the_blanks_stats(user_id):
+    conn = sqlite3.connect('database.db')
+    cur = conn.cursor()
+
+    # Statistiques globales (calculer la moyenne, min et max globalement)
+    cur.execute('''
+        SELECT SUM(games_played), 
+               SUM(total_score), 
+               MIN(min_score),  -- Minimum des scores
+               MAX(max_score)   -- Maximum des scores
+        FROM fill_the_blanks_stats
+        WHERE user_id = ?
+    ''', (user_id,))
+    global_stats = cur.fetchone()
+
+    # Statistiques par thème
+    cur.execute('''
+        SELECT theme, games_played, min_score, max_score, avg_score
+        FROM fill_the_blanks_stats
+        WHERE user_id = ?
+    ''', (user_id,))
+    theme_stats = cur.fetchall()
+
+    conn.close()
+
+    if not global_stats or global_stats[0] is None:
+        global_stats = [0, 0, None, None]  # Si aucune partie jouée, on met 0 pour total et None pour min/max.
+
+    total_games_played = global_stats[0]
+    total_score = global_stats[1]
+    global_min_score = global_stats[2]
+    global_max_score = global_stats[3]
+
+    # Calculer la moyenne générale des scores
+    avg_score_global = total_score / total_games_played if total_games_played > 0 else 0
+
+    return {
+        "global": {
+            "games_played": total_games_played,
+            "min_score": global_min_score,
+            "max_score": global_max_score,
+            "total_score": total_score,
+            "avg_score": avg_score_global
+        },
+        "by_theme": [
+            {
+                "theme": row[0],
+                "games_played": row[1],
+                "min_score": row[2],
+                "max_score": row[3],
+                "avg_score": row[4]
+            } for row in theme_stats
+        ]
+    }

@@ -22,7 +22,18 @@
         <!-- Fill the blanks -->
         <div class="tab-content hidden" id="fill_the_blanks">
             <h2>Fill the blanks</h2>
-            <p>Aucune statistique disponible pour le moment.</p>
+            <p>Parties jouées : {{ ftb_stats.global.games_played }}</p>
+            <p>Note : min {{ ftb_stats.global.min_score or "—" }}, max {{ ftb_stats.global.max_score or "—" }}, moyenne {{ "%.2f"|format(ftb_stats.global.avg_score) if ftb_stats.global.avg_score else "—" }}</p>
+
+            <h3>Par thème</h3>
+            {% for theme in ftb_stats.by_theme %}
+                <p><strong>{{ theme.theme }}</strong> — 
+                {{ theme.games_played }} parties, 
+                note : min {{ theme.min_score or "—" }}, 
+                max {{ theme.max_score or "—" }}, 
+                moy {{ "%.2f"|format(theme.avg_score) if theme.avg_score else "—" }}
+                </p>
+            {% endfor %}
         </div>
 
         <!-- Flashcards -->
