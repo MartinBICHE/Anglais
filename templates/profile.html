@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Profil - Statistiques</title>
+    <title>Profile - Statistics</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 </head>
 <body>
@@ -21,16 +21,16 @@
         <!-- Fill the blanks -->
         <div class="tab-content hidden" id="fill_the_blanks">
             <h2>Fill the blanks</h2>
-            <p>Parties jouées : {{ ftb_stats.global.games_played }}</p>
-            <p>Note : min {{ ftb_stats.global.min_score or "—" }}, max {{ ftb_stats.global.max_score or "—" }}, moyenne {{ "%.2f"|format(ftb_stats.global.avg_score) if ftb_stats.global.avg_score else "—" }}</p>
+            <p>Games played: {{ ftb_stats.global.games_played }}</p>
+            <p>Score: min {{ ftb_stats.global.min_score or "—" }}, max {{ ftb_stats.global.max_score or "—" }}, average {{ "%.2f"|format(ftb_stats.global.avg_score) if ftb_stats.global.avg_score else "—" }}</p>
 
-            <h3>Par thème</h3>
+            <h3>By theme</h3>
             {% for theme in ftb_stats.by_theme %}
                 <p><strong>{{ theme.theme }}</strong> — 
-                {{ theme.games_played }} parties, 
-                note : min {{ theme.min_score or "—" }}, 
+                {{ theme.games_played }} games, 
+                score: min {{ theme.min_score or "—" }}, 
                 max {{ theme.max_score or "—" }}, 
-                moy {{ "%.2f"|format(theme.avg_score) if theme.avg_score else "—" }}
+                avg {{ "%.2f"|format(theme.avg_score) if theme.avg_score else "—" }}
                 </p>
             {% endfor %}
         </div>
@@ -38,31 +38,31 @@
         <!-- Crossword -->
         <div class="tab-content hidden" id="crossword">
             <h2>Crossword</h2>
-            <p>Parties réussies : {{ stats.global[1] }} / {{ stats.global[0] }}</p>
-            <p>Tentatives : min {{ stats.global[2] }}, max {{ stats.global[3] }}, moyenne {{ stats.global[4] }}</p>
+            <p>Games won: {{ stats.global[1] }} / {{ stats.global[0] }}</p>
+            <p>Attempts: min {{ stats.global[2] }}, max {{ stats.global[3] }}, average {{ stats.global[4] }}</p>
 
-            <h3>Par thème</h3>
+            <h3>By theme</h3>
             {% for theme in stats.by_theme %}
-                <p><strong>{{ theme[0] }}</strong> — {{ theme[2] }} / {{ theme[1] }} réussites, {{ theme[3] }} tentatives en moyenne</p>
+                <p><strong>{{ theme[0] }}</strong> — {{ theme[2] }} / {{ theme[1] }} wins, {{ theme[3] }} attempts on average</p>
             {% endfor %}
         </div>
 
         <!-- Word Search -->
         <div class="tab-content hidden" id="word_search_puzzle">
             <h2>Word Search</h2>
-            <p>Grilles réussies : {{ wsp_stats.global[1] }} / {{ wsp_stats.global[0] }}</p>
-            <p>Temps : min {{ wsp_stats.global[2]|int // 60 }}min {{ wsp_stats.global[2]|int % 60 }}s, 
+            <p>Grids solved: {{ wsp_stats.global[1] }} / {{ wsp_stats.global[0] }}</p>
+            <p>Time: min {{ wsp_stats.global[2]|int // 60 }}min {{ wsp_stats.global[2]|int % 60 }}s, 
                 max {{ wsp_stats.global[3]|int // 60 }}min {{ wsp_stats.global[3]|int % 60 }}s, 
-                moyenne {{ wsp_stats.global[4]|int // 60 }}min {{ wsp_stats.global[4]|int % 60 }}s</p>
+                average {{ wsp_stats.global[4]|int // 60 }}min {{ wsp_stats.global[4]|int % 60 }}s</p>
         
-            <h3>Par thème</h3>
+            <h3>By theme</h3>
             {% for theme_stat in wsp_stats.by_theme %}
                 <p>
                     <strong>{{ theme_stat[0] }}</strong> — 
-                    {{ theme_stat[2] }} / {{ theme_stat[1] }} réussites, 
+                    {{ theme_stat[2] }} / {{ theme_stat[1] }} wins, 
                     min {{ theme_stat[3]|int // 60 }}min {{ theme_stat[3]|int % 60 }}s, 
                     max {{ theme_stat[4]|int // 60 }}min {{ theme_stat[4]|int % 60 }}s, 
-                    moy {{ theme_stat[5]|int // 60 }}min {{ theme_stat[5]|int % 60 }}s
+                    avg {{ theme_stat[5]|int // 60 }}min {{ theme_stat[5]|int % 60 }}s
                 </p>
             {% endfor %}
         </div>
@@ -70,22 +70,22 @@
         <!-- Memory -->
         <div class="tab-content hidden" id="memory">
             <h2>Memory</h2>
-            <p>Parties gagnées : {{ memory_stats.global[1] }} / {{ memory_stats.global[0] }}</p>
-            <p>Tentatives : 
+            <p>Games won: {{ memory_stats.global[1] }} / {{ memory_stats.global[0] }}</p>
+            <p>Attempts: 
                 min {{ memory_stats.global[2] if memory_stats.global[2] is not none else "—" }}, 
                 max {{ memory_stats.global[3] if memory_stats.global[3] is not none else "—" }}, 
-                moyenne {{ "%.2f"|format(memory_stats.global[5]) if memory_stats.global[5] is not none else "—" }}
+                average {{ "%.2f"|format(memory_stats.global[5]) if memory_stats.global[5] is not none else "—" }}
             </p>
             
-            <h3>Par thème</h3>
+            <h3>By theme</h3>
             {% for theme in memory_stats.by_theme %}
                 <p>
                     <strong>{{ theme[0] }}</strong> — 
-                    {{ theme[2] }} / {{ theme[1] }} réussites, 
-                    tentatives : 
+                    {{ theme[2] }} / {{ theme[1] }} wins, 
+                    attempts: 
                     min {{ theme[3] if theme[3] is not none else "—" }}, 
                     max {{ theme[4] if theme[4] is not none else "—" }}, 
-                    moy {{ "%.2f"|format(theme[6]) if theme[6] is not none else "—" }}
+                    avg {{ "%.2f"|format(theme[6]) if theme[6] is not none else "—" }}
                 </p>
             {% endfor %}
         </div>
