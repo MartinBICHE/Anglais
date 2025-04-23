@@ -3,55 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crossword</title>
+    <title>EduPlay - Crossword Puzzle</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/crossword.css') }}">
 </head>
 <body>
-
-    <button id="menuButton" onclick="confirmReturnToMenu()">⬅ Menu</button>
+    <!-- Menu Button -->
+    <button class="menu-button" id="menuButton" onclick="confirmReturnToMenu()">←</button>
+    
     <h1>Crossword Puzzle</h1>
-
-    {% if message %}
-        <div class="message {{ 'success' if 'Congratulations' in message else 'error' }}">
-            {{ message|safe }}
+    
+    <!-- Victory Modal -->
+    <div id="victory-overlay">
+        <div id="victory-popup">
+            <h2>Congratulations! 🎉</h2>
+            <p>You've successfully completed the crossword puzzle!</p><br>
+            <button onclick="window.location.href='/'">Return to Menu</button>
         </div>
-    {% endif %}
-
-    {% if show_new_grid_button %}
-        <button id="newGridButton" onclick="window.location.href='/new_grid'">Generate New Grid</button>
-    {% else %}
-        <div id="grid-container">
-            <div id="crossword">
-                {{ crossword|safe }}
+    </div>
+    
+    <!-- Main Game Content -->
+    <div id="grid-container">
+        <div id="crossword">
+            {{ crossword|safe }}
+        </div>
+        
+        <div id="definitions">
+            <div class="definitions-section horizontal-definitions">
+                {% for word, definition in definitions_h.items() %}
+                <div class="definition-item">
+                    <strong>{{ word }}</strong> {{ definition }}
+                </div>
+                {% endfor %}
             </div>
-            <div id="definitions">
-                <br>
-                <br>
-                <div class="definitions-section horizontal-definitions">
-                    <br>
-                    {% for word, definition in definitions_h.items() %}
-                        <div class="definition-item"><strong>{{ word }}</strong> {{ definition }}</div>
-                    {% endfor %}
+            
+            <div class="definitions-section vertical-definitions">
+                {% for word, definition in definitions_v.items() %}
+                <div class="definition-item">
+                    <strong>{{ word }}</strong> {{ definition }}
                 </div>
-                <br>
-                <div class="definitions-section vertical-definitions">
-                    <br>
-                    {% for word, definition in definitions_v.items() %}
-                        <div class="definition-item"><strong>{{ word }}</strong> {{ definition }}</div>
-                    {% endfor %}
-                </div>
+                {% endfor %}
             </div>
         </div>
-    {% endif %}
-
+    </div>
+    
+    <!-- Action Buttons Container (if needed) -->
+    <div class="actions-container" style="text-align: center; margin-top: 30px;">
+        <!-- You can add validate or new grid buttons here if needed -->
+    </div>
+    
+    <!-- Flash Messages Handler -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                {% for msg in messages %}
+                    console.log("Message flashé : {{ msg }}");
+                    {% if 'Congratulations' in msg %}
+                        showVictoryModal();
+                    {% endif %}
+                {% endfor %}
+            });
+        </script>
+        {% endif %}
+    {% endwith %}
+    
     <script>
         function confirmReturnToMenu() {
-            let saveProgress = confirm("Are you sure you want to return to the menu? Your changes will not be saved.");
+            let saveProgress = confirm("Are you sure you want to return to the menu? Your progress will not be saved.");
             if (saveProgress) {
                 window.location.href = '/';
             }
         }
+        
+        function showVictoryModal() {
+            document.getElementById("victory-overlay").style.display = "flex";
+        }
     </script>
-
 </body>
 </html>

@@ -3,47 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu de Jeu - Modes</title>
+    <title>EduPlay - Sélection du thème</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <a href="/" class="return-button">←</a>
 
-    <label for="mode-select">Select a theme :</label>
-    <select id="mode-select">
-        <option value="all">all themes</option>
-        {% for theme in themes %}
-            <option value="{{ theme }}">{{ theme }}</option> 
-        {% endfor %}
-    </select>
+    <div class="theme-container">
+        <div class="theme-card">
+            <div class="theme-card-bg"></div>
+            <div class="game-info">
+                <div class="game-icon" id="gameIcon">🎮</div>
+                <div class="game-details">
+                    <h1 class="theme-title" id="gameTitle">Loading...</h1>
+                    <p class="theme-subtitle" id="gameDescription">Please select a theme</p>
+                </div>
+            </div>
 
-    <button class="confirm-button" id="confirmButton">Play</button>
+            <label for="theme-select" class="theme-label">Choose a theme :</label>
+            <div class="theme-select-container">
+                <select id="theme-select" class="theme-select">
+                    <option value="all">All themes</option>
+                    {% for theme in themes %}
+                    <option value="{{ theme }}">{{ theme }}</option>
+                    {% endfor %}
+                </select>
+                <span class="select-arrow">▼</span>
+            </div>
+
+            <button class="play-button" id="playButton">PLAY</button>
+        </div>
+    </div>
 
     <script>
-        function handleThemeSelection() {
-            let selectedMode = sessionStorage.getItem("selectedMode"); 
-            let modeSelect = document.getElementById('mode-select');
-            
-            const restrictedThemesMemory = ["figures of speech","computer parts"];
-            const restrictedThemesFillTheBlanks = ["all"]
+        // Définition des icônes et descriptions des jeux par mode
+        const gameInfo = {
+            "flashcards": {
+                icon: "🧠",
+                title: "Flashcards",
+                description: "Refine your knownledge with flashcards."
+            },
+            "crossword": {
+                icon: "🔠",
+                title: "Crosswords",
+                description: "Test your vocabulary with our crosswords."
+            },
+            "word_search_puzzle": {
+                icon: "🔍",
+                title: "Word Search Puzzle",
+                description: "Find all the hidden words !"
+            },
+            "memory": {
+                icon: "👁️",
+                title: "Memory Match",
+                description: "Find all synonym pairs."
+            },
+            "fill_the_blanks": {
+                icon: "📝",
+                title: "Fill the blanks",
+                description: "Complete the sentences with the missing words."
+            }
+        };
 
+        function handleThemeSelection() {
+            let selectedMode = sessionStorage.getItem("selectedMode");
+            let themeSelect = document.getElementById('theme-select');
+            const restrictedThemesMemory = ["figures of speech", "computer parts"];
+            const restrictedThemesFillTheBlanks = ["all"];
+            
+            // Mettre à jour les informations du jeu
+            if (selectedMode && gameInfo[selectedMode]) {
+                document.getElementById('gameIcon').innerHTML = gameInfo[selectedMode].icon;
+                document.getElementById('gameTitle').textContent = gameInfo[selectedMode].title;
+                document.getElementById('gameDescription').textContent = gameInfo[selectedMode].description;
+            }
+            
             if (selectedMode === "memory") {
-                for (let i = 0; i < modeSelect.options.length; i++) {
-                    let option = modeSelect.options[i];
+                for (let i = 0; i < themeSelect.options.length; i++) {
+                    let option = themeSelect.options[i];
                     if (restrictedThemesMemory.includes(option.value)) {
                         option.disabled = true;
                     }
                 }
             } else if (selectedMode === "fill_the_blanks") {
-                for (let i = 0; i < modeSelect.options.length; i++) {
-                    let option = modeSelect.options[i];
+                for (let i = 0; i < themeSelect.options.length; i++) {
+                    let option = themeSelect.options[i];
                     if (restrictedThemesFillTheBlanks.includes(option.value)) {
                         option.disabled = true;
                     }
                 }
             } else {
-                for (let i = 0; i < modeSelect.options.length; i++) {
-                    let option = modeSelect.options[i];
+                for (let i = 0; i < themeSelect.options.length; i++) {
+                    let option = themeSelect.options[i];
                     option.disabled = false;
                 }
             }
@@ -53,16 +105,13 @@
             handleThemeSelection();
         });
 
-        document.getElementById('confirmButton').addEventListener('click', () => {
-            let selectedTheme = document.getElementById("mode-select").value; 
-            let selectedMode = sessionStorage.getItem("selectedMode"); 
-
+        document.getElementById('playButton').addEventListener('click', () => {
+            let selectedTheme = document.getElementById("theme-select").value;
+            let selectedMode = sessionStorage.getItem("selectedMode");
             console.log("Mode sélectionné :", selectedMode);
             console.log("Thème sélectionné :", selectedTheme);
             window.location.href = `/${selectedMode}/${selectedTheme}`;
         });
-
     </script>
-
 </body>
 </html>

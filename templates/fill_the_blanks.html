@@ -8,25 +8,29 @@
 </head>
 <body>
     <!-- Menu Button -->
-    <button id="menuButton" onclick="confirmReturnToMenu()">⬅ Menu</button>
+    <button class="menu-button" id="menuButton" onclick="confirmReturnToMenu()">←</button>
 
     <!-- Header -->
-    <h1>{{ theme.title() }} Quiz</h1>
-    <h2>Progress: {{ progress }}</h2>
+    <div class="page-header">
+        <h1 class="page-title">{{ theme.title() }} Quiz</h1>
+        <p class="page-subtitle">Progress: {{ progress }}</p>
+    </div>
 
     <!-- Instruction -->
-    <p><strong>Complete the sentence:</strong></p>
+    <p class="instruction">Complete the sentence:</p>
 
     <!-- Sentence in a styled blue box -->
     <div class="question-box">{{ sentence.replace(answer, '_____') }}</div>
 
     <!-- Answer Buttons -->
-    <form id="answerForm" method="POST" action="{{ url_for('check_answer') }}">
-        {% for option in options %}
-            <button type="button" class="answer-button" value="{{ option }}">{{ option }}</button>
-        {% endfor %}
-        <input type="hidden" name="guess">
-    </form>
+    <div class="options-container">
+        <form id="answerForm" method="POST" action="{{ url_for('check_answer') }}">
+            {% for option in options %}
+                <button type="button" class="answer-button" value="{{ option }}">{{ option }}</button>
+            {% endfor %}
+            <input type="hidden" name="guess">
+        </form>
+    </div>
 
     <!-- JS: Submit form when option is clicked -->
     <script>
@@ -42,10 +46,8 @@
         });
 
         function confirmReturnToMenu() {
-            const confirmExit = confirm("Are you sure you want to return to the menu? Your progress will be lost.");
-            if (confirmExit) {
-                window.location.href = '/';
-            }
+            window.location.href = '/';
+            
         }
     </script>
 </body>

@@ -3,207 +3,334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu de Jeu - Modes</title>
+    <title>Game Hub - Educational Games</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/menu.css') }}">
 </head>
 <body>
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-    <button class="menu-button" id="menuBtn" onclick="toggleSidebar()">☰ Menu</button>
+    <div class="site-overlay" id="overlay"></div>
+    
+    <!-- Menu Toggle Button -->
+    <button class="menu-toggle" id="menuToggle">
+        Menu
+    </button>
+    
+    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-        <button class="close-button" onclick="toggleSidebar()">❮</button>
-        <img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Logo">
-        <hr>
-        {% if isauth %}
-            <a href="/profile/">Profile</a>
-            <a href="/logout">Log out</a>
-        {% else %}
-            <a href="javascript:void(0);" onclick="toggleForm('register')">Register</a>
-            <a href="javascript:void(0);" onclick="toggleForm('login')">Login</a>
-        {% endif %}
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <div class="logo-icon"><img src="{{ url_for('static', filename='images/Logo.png') }}" alt="Logo"></div>
+            </div>
+            <button class="close-btn" id="closeBtn">×</button>
+        </div>
         
-        <div id="registerForm" class="form-container">
-            <form action="/register/" method="POST">
-                <input type="text" name="username" placeholder="Username" required>
-                <input type="password" name="password" placeholder="Password" required>
-                <input type="submit" value="Register" class="input3">
-            </form>
-        </div>
+        <hr class="sidebar-divider">
 
-        <div id="loginForm" class="form-container">
+        <!-- Auth Links -->
+        <div class="auth-links">
+            {% if isauth %}
+                <a href="/profile/" class="sidebar-link">
+                    <span>👤</span> Profile
+                </a>
+                <a href="/logout" class="sidebar-link">
+                    <span>🚪</span> Log out
+                </a>
+            {% else %}
+                <a href="javascript:void(0);" class="sidebar-link" id="loginLink">
+                    <span>🔑</span> Login
+                </a>
+                <a href="javascript:void(0);" class="sidebar-link" id="registerLink">
+                    <span>✏️</span> Register
+                </a>
+            {% endif %}
+        </div>
+        
+        <!-- Auth Forms -->
+        <div class="auth-container" id="loginForm">
+            <h3 class="auth-title">Login to your account</h3>
             <form action="/login/" method="POST">
-                <input type="text" name="username" placeholder="Username" required>
-                <input type="password" name="password" placeholder="Password" required>
-                <input type="submit" value="Login" class="input3">
+                <div class="form-group">
+                    <input type="text" class="form-control" name="username" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" name="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn">Log In</button>
             </form>
         </div>
-
+        
+        <div class="auth-container" id="registerForm">
+            <h3 class="auth-title">Create an account</h3>
+            <form action="/register/" method="POST">
+                <div class="form-group">
+                    <input type="text" class="form-control" name="username" placeholder="Username" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" name="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn">Register</button>
+            </form>
+        </div>
     </div>
-
-    <div class="content">
-        <div class="title-roulette">
-            <div class="title" id="titleLeft"></div>
-            <div class="title" id="titleCenter"></div>
-            <div class="title" id="titleRight"></div>
-        </div>
     
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="game-title-container">
+            <h1 class="game-title">Challenge Your Mind</h1>
+            <p class="game-subtitle">Explore our collection of brain-training games to sharpen your vocabulary skills while having fun.</p>
+        </div>
+        
         <div class="carousel-container">
-            <div class="carousel">
-                <div class="mode" style="background-image: url('{{ url_for('static', filename='images/flashcards.png') }}');" data-mode="flashcards">Flashcards</div>
-                <div class="mode" style="background-image: url('{{ url_for('static', filename='images/crossword.png') }}');" data-mode="crossword">Crossword</div>
-                <div class="mode" style="background-image: url('{{ url_for('static', filename='images/wordSearch.png') }}');" data-mode="word_search_puzzle">Word search puzzle</div>
-                <div class="mode" style="background-image: url('{{ url_for('static', filename='images/memory.png') }}');background-position: center -55px;" data-mode="memory">Memory</div>
-                <div class="mode" style="background-image: url('{{ url_for('static', filename='images/fill_the_blanks.png') }}');" data-mode="fill_the_blanks">Fill the blanks</div>
-            </div>
-    
-            <div class="controls">
-                <button class="arrow left">&#10094;</button>
-                <button class="arrow right">&#10095;</button>
+            <div class="game-carousel">
+                <div class="carousel-inner" id="carouselInner">
+                    <!-- Flashcards -->
+                    <div class="game-card" data-mode="flashcards">
+                        <img class="game-card-bg" src="{{ url_for('static', filename='images/flashcards.png') }}" alt="Flashcards">
+                        <div class="game-card-overlay">
+                            <span class="game-level"><span class="game-level-icon">🧠</span> Memory Booster</span>
+                            <h2 class="game-name">Flashcards</h2>
+                            <p class="game-description">Test your knowledge and memorization skills. Perfect for language learning and quick study sessions.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Crossword -->
+                    <div class="game-card" data-mode="crossword">
+                        <img class="game-card-bg" src="{{ url_for('static', filename='images/crossword.png') }}" alt="Crossword">
+                        <div class="game-card-overlay">
+                            <span class="game-level"><span class="game-level-icon">🔠</span> Word Master</span>
+                            <h2 class="game-name">Crossword</h2>
+                            <p class="game-description">Challenge your vocabulary and problem-solving with our adaptive crossword puzzles.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Word Search -->
+                    <div class="game-card" data-mode="word_search_puzzle">
+                        <img class="game-card-bg" src="{{ url_for('static', filename='images/wordSearch.png') }}" alt="Word Search">
+                        <div class="game-card-overlay">
+                            <span class="game-level"><span class="game-level-icon">🔍</span> Word Detective</span>
+                            <h2 class="game-name">Word Search</h2>
+                            <p class="game-description">Hunt for hidden words in any direction. Great for improving focus and pattern recognition skills.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Memory Game -->
+                    <div class="game-card" data-mode="memory">
+                        <img class="game-card-bg" src="{{ url_for('static', filename='images/memory.png') }}" alt="Memory Match">
+                        <div class="game-card-overlay">
+                            <span class="game-level"><span class="game-level-icon">👁️</span> Visual Memory</span>
+                            <h2 class="game-name">Memory Match</h2>
+                            <p class="game-description">Find matching pairs in this classic memory challenge. Train short-term memory and concentration.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Fill the blanks -->
+                    <div class="game-card" data-mode="fill_the_blanks">
+                        <img class="game-card-bg" src="{{ url_for('static', filename='images/fill_the_blanks.png') }}" alt="Fill the Blanks">
+                        <div class="game-card-overlay">
+                            <span class="game-level"><span class="game-level-icon">📝</span> Context Mastery</span>
+                            <h2 class="game-name">Fill the Blanks</h2>
+                            <p class="game-description">Complete sentences by filling in missing words. Great for language comprehension and grammar practice.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="carousel-controls">
+                    <button class="carousel-arrow prev-btn" id="prevBtn">❮</button>
+                    <button class="carousel-arrow next-btn" id="nextBtn">❯</button>
+                </div>
+                
+                <div class="carousel-indicators" id="indicators">
+                    <span class="indicator active" data-index="0"></span>
+                    <span class="indicator" data-index="1"></span>
+                    <span class="indicator" data-index="2"></span>
+                    <span class="indicator" data-index="3"></span>
+                    <span class="indicator" data-index="4"></span>
+                </div>
             </div>
         </div>
-    
-        <button class="play-button" id="playButton">Play</button>
+        
+        <div class="play-btn-container">
+            <button class="play-btn" id="playBtn">PLAY NOW</button>
+        </div>
     </div>
 
     <script>
+        // DOM Elements
         const isAuthenticated = {{ 'true' if isauth else 'false' }};
-        const carousel = document.querySelector('.carousel');
-        const originalModes = Array.from(document.querySelectorAll('.mode'));
-        const titleLeft = document.getElementById('titleLeft');
-        const titleCenter = document.getElementById('titleCenter');
-        const titleRight = document.getElementById('titleRight');
-    
-        const firstClone = originalModes[0].cloneNode(true);
-        const lastClone = originalModes[originalModes.length - 1].cloneNode(true);
-        firstClone.id = 'first-clone';
-        lastClone.id = 'last-clone';
-        carousel.insertBefore(lastClone, carousel.firstChild);
-        carousel.appendChild(firstClone);
-    
-        let currentIndex = 1;
-        let selectedMode = originalModes[0].getAttribute('data-mode');
+        const menuToggle = document.getElementById('menuToggle');
+        const closeBtn = document.getElementById('closeBtn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.querySelector('.site-overlay');
+        const mainContent = document.getElementById('mainContent');
+        const loginLink = document.getElementById('loginLink');
+        const registerLink = document.getElementById('registerLink');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const carouselInner = document.getElementById('carouselInner');
+        const indicators = document.querySelectorAll('.indicator');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const playBtn = document.getElementById('playBtn');
+        
+        // Game modes
+        const gameCards = document.querySelectorAll('.game-card');
+        let currentIndex = 0;
+        let selectedMode = gameCards[0].getAttribute('data-mode');
+        
+        // Toggle sidebar
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            mainContent.classList.toggle('sidebar-open');
+        }
+        
+        menuToggle.addEventListener('click', toggleSidebar);
+        closeBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+        
+        // Toggle auth forms
+        if (loginLink) {
+            loginLink.addEventListener('click', () => {
+                loginForm.classList.add('visible');
+                registerForm.classList.remove('visible');
+            });
+        }
+        
+        if (registerLink) {
+            registerLink.addEventListener('click', () => {
+                registerForm.classList.add('visible');
+                loginForm.classList.remove('visible');
+            });
+        }
+        
+        // Carousel functionality
+        function updateCarousel() {
+            carouselInner.style.transform = `translateX(-${currentIndex * 100}%)`;
+            
+            // Update selected mode
+            selectedMode = gameCards[currentIndex].getAttribute('data-mode');
+            
+            // Update indicators
+            indicators.forEach((indicator, index) => {
+                indicator.classList.toggle('active', index === currentIndex);
+            });
+        }
+        
+        // Next slide
+        function nextSlide() {
+            currentIndex = (currentIndex + 1) % gameCards.length;
+            updateCarousel();
+        }
+        
+        // Previous slide
+        function prevSlide() {
+            currentIndex = (currentIndex - 1 + gameCards.length) % gameCards.length;
+            updateCarousel();
+        }
+        
+        // Indicator clicks
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                currentIndex = index;
+                updateCarousel();
+            });
+        });
+        
+        // Auto scroll
         let autoScrollInterval;
         let inactivityTimeout;
-    
-        function updateCarousel() {
-            const children = carousel.children;
-            carousel.style.transition = 'transform 0.5s ease-in-out';
-            carousel.style.transform = `translateX(${-currentIndex * 100}%)`;
-    
-            selectedMode = children[currentIndex].getAttribute('data-mode');
-    
-            const leftIndex = (currentIndex === 0) ? children.length - 2 : currentIndex - 1;
-            const rightIndex = (currentIndex === children.length - 1) ? 1 : currentIndex + 1;
-    
-            titleLeft.textContent = children[leftIndex].textContent;
-            titleCenter.textContent = children[currentIndex].textContent;
-            titleRight.textContent = children[rightIndex].textContent;
-    
-            titleLeft.style.filter = 'blur(4px)';
-            titleCenter.style.filter = 'none';
-            titleRight.style.filter = 'blur(4px)';
+        
+        function startAutoScroll() {
+            autoScrollInterval = setInterval(nextSlide, 5000);
         }
-    
-        carousel.addEventListener('transitionend', () => {
-            const children = carousel.children;
-            if (children[currentIndex].id === 'first-clone') {
-                carousel.style.transition = 'none';
-                currentIndex = 1;
-                carousel.style.transform = `translateX(${-currentIndex * 100}%)`;
-            } else if (children[currentIndex].id === 'last-clone') {
-                carousel.style.transition = 'none';
-                currentIndex = children.length - 2;
-                carousel.style.transform = `translateX(${-currentIndex * 100}%)`;
-            }
-        });
-    
-        function nextMode() {
-            if (currentIndex >= carousel.children.length - 1) return;
-            currentIndex++;
-            updateCarousel();
-        }
-    
-        function prevMode() {
-            if (currentIndex <= 0) return;
-            currentIndex--;
-            updateCarousel();
-        }
-    
+        
         function resetAutoScroll() {
             clearInterval(autoScrollInterval);
             clearTimeout(inactivityTimeout);
-            inactivityTimeout = setTimeout(() => {
-                autoScrollInterval = setInterval(nextMode, 3000);
-            }, 20000);
+            inactivityTimeout = setTimeout(startAutoScroll, 10000);
         }
-    
-        document.querySelector('.left').addEventListener('click', () => {
-            prevMode();
-            resetAutoScroll();
+        
+        // Touch support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        carouselInner.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
         });
-    
-        document.querySelector('.right').addEventListener('click', () => {
-            nextMode();
-            resetAutoScroll();
+        
+        carouselInner.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
         });
-    
-        Array.from(carousel.children).forEach((mode, index) => {
-            mode.addEventListener('click', () => {
-                currentIndex = index;
-                updateCarousel();
+        
+        function handleSwipe() {
+            const threshold = 50;
+            if (touchEndX < touchStartX - threshold) {
+                nextSlide();
                 resetAutoScroll();
-            });
-        });
-    
-        document.getElementById('playButton').addEventListener('click', () => {
+            }
+            if (touchEndX > touchStartX + threshold) {
+                prevSlide();
+                resetAutoScroll();
+            }
+        }
+        
+        // Play button
+        playBtn.addEventListener('click', function() {
             if (!isAuthenticated) {
-                toggleSidebar();
-                const loginLink = Array.from(document.querySelectorAll('.sidebar a'))
-                    .find(a => a.textContent.trim() === "Login");
+                // Si non authentifié, on montre la sidebar avec le formulaire de login
+                if (!sidebar.classList.contains('open')) {
+                    toggleSidebar();
+                }
+                
                 if (loginLink) {
+                    loginForm.classList.add('visible');
+                    registerForm.classList.remove('visible');
                     loginLink.classList.add('blink');
                     setTimeout(() => loginLink.classList.remove('blink'), 3000);
                 }
                 return;
             }
+
+            // Si authentifié, on redirige vers la page thème avec le mode sélectionné
             sessionStorage.setItem("selectedMode", selectedMode);
             window.location.href = "/theme";
+            console.log(`Starting game mode: ${selectedMode}`);
         });
-    
-        function toggleSidebar() {
-            let sidebar = document.getElementById('sidebar');
-            let menuBtn = document.getElementById('menuBtn');
-            let overlay = document.getElementById('overlay');
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
-            menuBtn.style.display = sidebar.classList.contains('open') ? 'none' : 'block';
-        }
-    
-        function toggleForm(formType) {
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'none';
-            if (formType === 'register') {
-                document.getElementById('registerForm').style.display = 'block';
-            } else if (formType === 'login') {
-                document.getElementById('loginForm').style.display = 'block';
-            }
-        }
-    
-        {% if badCredentials %}
-            alert("Incorrect username or password!");
-            toggleSidebar();
-            toggleForm('login');
-        {% endif %}
-    
-        {% if usernameExists %}
-            alert("This username is already taken. Please choose another one.");
-            toggleSidebar();
-            toggleForm('register');
-        {% endif %}
-    
-        carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
-        updateCarousel();
-        resetAutoScroll();
-    </script>    
+            
+        // Initialize
+        startAutoScroll();
         
+        // Event listeners for resetting auto scroll
+        carouselInner.addEventListener('click', resetAutoScroll);
+
+        prevBtn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Empêcher la propagation de l'événement
+            console.log('Flèche précédente cliquée');
+            prevSlide();
+            resetAutoScroll();
+        });
+
+        nextBtn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Empêcher la propagation de l'événement
+            console.log('Flèche suivante cliquée');
+            nextSlide();
+            resetAutoScroll();
+        });
+        
+        indicators.forEach(indicator => {
+            indicator.addEventListener('click', resetAutoScroll);
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowLeft') {
+                prevSlide();
+                resetAutoScroll();
+            } else if (e.code === 'ArrowRight') {
+                nextSlide();
+                resetAutoScroll();
+            }
+        });
+    </script>
 </body>
 </html>

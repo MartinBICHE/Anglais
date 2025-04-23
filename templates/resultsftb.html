@@ -1,62 +1,100 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Results</title>
+    <title>Quiz Results - EduPlay</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/resultsftb.css') }}">
-
-    <!-- Include the Confetti.js library -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
+    <button id="menuButton" onclick="confirmReturnToMenu()">←</button>
+    
     <h1>Quiz Complete!</h1>
-    <p><strong>Correct:</strong> {{ correct }}</p>
-    <p><strong>Incorrect:</strong> {{ incorrect }}</p>
-
-    <h2>Review:</h2>
+    
+    {% if all_correct %}
+        <p class="score-message perfect-score">Perfect Score! Congratulations! 🎉</p>
+    {% elif correct > incorrect %}
+        <p class="score-message">Great job! Keep it up!</p>
+    {% else %}
+        <p class="score-message">Keep practicing, you'll improve!</p>
+    {% endif %}
+    
+    <div class="stats-container">
+        <div class="stat-card">
+            <p class="stat-title">Correct</p>
+            <p class="stat-value correct-value">{{ correct }}</p>
+        </div>
+        <div class="stat-card">
+            <p class="stat-title">Incorrect</p>
+            <p class="stat-value incorrect-value">{{ incorrect }}</p>
+        </div>
+    </div>
+    
+    <h2>Review Your Answers</h2>
+    
     <ul>
         {% for entry in history %}
-            <li class="{{ 'correct' if entry.user_guess == entry.correct_answer else 'incorrect' }}">
-                <div>
-                    <strong>Sentence:</strong> {{ entry.sentence.replace(entry.correct_answer, '_____') }}
+        <li class="{{ 'correct' if entry.user_guess == entry.correct_answer else 'incorrect' }}">
+            <div>
+                <p class="sentence">{{ entry.sentence.replace(entry.correct_answer, '_____') }}</p>
+                <p class="answer">
+                    <span class="answer-icon">{{ '✓' if entry.user_guess == entry.correct_answer else '✗' }}</span>
                     <strong>Your Answer:</strong> {{ entry.user_guess }}
+                </p>
+                {% if entry.user_guess != entry.correct_answer %}
+                <p class="answer">
+                    <span class="answer-icon">✓</span>
                     <strong>Correct Answer:</strong> {{ entry.correct_answer }}
-                </div>
-            </li>
+                </p>
+                {% endif %}
+            </div>
+        </li>
         {% endfor %}
     </ul>
     
-    <!-- Confetti Canvas -->
-    <canvas id="confetti-canvas" style="position: absolute; top: 0; left: 0; z-index: 1000; pointer-events: none;"></canvas>
-
-    <button id="menuButton" onclick="confirmReturnToMenu()">⬅ Menu</button>
-
+    <button class="play-again-btn" onclick="window.location.href='/'">Return to Menu</button>
+    
+    <canvas id="confetti-canvas"></canvas>
+    
     <script>
-    // Confetti effect if all answers are correct
-    const allCorrect = {{ all_correct | default(false) | tojson }};
-    if (allCorrect) {
-        const canvas = document.getElementById("confetti-canvas");
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        confetti.create(canvas, {
-            resize: true,
-            useWorker: true
-        })({
-            particleCount: 500,
-            spread: 70,
-            origin: { y: 0.6 }
-        });
-    }
-</script>
-<script>
-    function confirmReturnToMenu() {
-        const confirmExit = confirm("Are you sure you want to return to the menu?");
-        if (confirmExit) {
-             window.location.href = '/';
+        // Confetti effect if all answers are correct
+        const allCorrect = {{ all_correct | default(false) | tojson }};
+        
+        if (allCorrect) {
+            const duration = 5 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+            
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+            
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+                
+                const particleCount = 50 * (timeLeft / duration);
+                
+                // Since particles fall down, start a bit higher than random
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                }));
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                }));
+            }, 250);
         }
-    }
-</script>
+        
+        function confirmReturnToMenu() {
+            window.location.href = '/';
+        }
+    </script>
 </body>
 </html>

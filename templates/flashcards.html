@@ -1,73 +1,131 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="fr">
 <head>
-    <title>{{ theme.title() }} Flashcards</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ theme.title() }} Flashcards</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flashcards.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <button id="menuButton" onclick="confirmReturnToMenu()">⬅ Menu</button>
-
-    <h1 style="text-align:center;">{{ theme.title() }}</h1>
-
+    <!-- Menu Button -->
+    <button class="menu-button" id="menuButton">
+        ←
+    </button>
+    
+    <div class="page-header">
+        <h1 class="page-title">{{ theme.title() }}</h1>
+        <p class="page-subtitle">Click on the card to view the definition</p>
+    </div>
+    
     <div class="flashcard-container">
-        <div class="flashcard" onclick="toggleFlip()">
-            <div class="card-inner" id="card-inner">
-                <div class="card-front" id="card-front"></div>
-                <div class="card-back" id="card-back"></div>
+        <div class="counter">
+            Card <span id="currentIndex">1</span> to <span id="totalCards">0</span>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="flashcard" id="flashcard">
+            <div class="card-inner" id="cardInner">
+                <div class="card-front" id="cardFront"></div>
+                <div class="card-back" id="cardBack"></div>
             </div>
         </div>
-
-        <div class="nav-buttons">
-            <button onclick="prevCard()">Previous</button>
-            <button onclick="nextCard()">Next</button>
+        
+        <div class="flip-hint">
+            <span class="flip-icon">↻</span>
+            Click on the card to flip it
+        </div>
+        
+        <div class="controls">
+            <button class="btn-prev" id="prevBtn">
+                ← Previous
+            </button>
+            <button class="btn-next" id="nextBtn">
+                Next →
+            </button>
         </div>
     </div>
 
     <script>
+        // DOM Elements
         const cards = {{ cards|tojson }};
-        let currentCard = 0;
-
-        const front = document.getElementById("card-front");
-        const back = document.getElementById("card-back");
-        const cardInner = document.getElementById("card-inner");
-
-        function showCard(index) {
+        const cardFront = document.getElementById('cardFront');
+        const cardBack = document.getElementById('cardBack');
+        const cardInner = document.getElementById('cardInner');
+        const flashcard = document.getElementById('flashcard');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const currentIndexEl = document.getElementById('currentIndex');
+        const totalCardsEl = document.getElementById('totalCards');
+        const progressBar = document.getElementById('progressBar');
+        const menuButton = document.getElementById('menuButton');
+        
+        // Variables
+        let currentIndex = 0;
+        totalCardsEl.textContent = cards.length;
+        
+        // Functions
+        function displayCard(index) {
             const card = cards[index];
-            front.textContent = card[0]; // word
-            back.textContent = card[1];  // definition
-            cardInner.classList.remove("flipped"); // reset flip
+            cardFront.textContent = card[0]; // Question/mot
+            cardBack.textContent = card[1]; // Réponse/définition
+            cardInner.classList.remove('flipped');
+            currentIndexEl.textContent = index + 1;
+            updateProgressBar();
         }
-
-        function toggleFlip() {
-            cardInner.classList.toggle("flipped");
+        
+        function updateProgressBar() {
+            const progress = ((currentIndex + 1) / cards.length) * 100;
+            progressBar.style.width = `${progress}%`;
         }
-
+        
         function nextCard() {
-            currentCard = (currentCard + 1) % cards.length;
-            showCard(currentCard);
+            currentIndex = (currentIndex + 1) % cards.length;
+            displayCard(currentIndex);
         }
-
+        
         function prevCard() {
-            currentCard = (currentCard - 1 + cards.length) % cards.length;
-            showCard(currentCard);
+            currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+            displayCard(currentIndex);
         }
-
-        // Initialize first card
-        if (cards.length > 0) {
-            showCard(currentCard);
-        } else {
-            front.textContent = "No cards available";
-            back.textContent = "";
+        
+        function toggleFlip() {
+            cardInner.classList.toggle('flipped');
         }
-    </script>
-    <script>
-        function confirmReturnToMenu() {
-            let saveProgress = confirm("Are you sure you want to return to the menu? Your changes will not be saved.");
-            if (saveProgress) {
+        
+        function confirmExit() {
+            return confirm("Êtes-vous sûr de vouloir retourner au menu ? Votre progression ne sera pas sauvegardée.");
+        }
+        
+        // Event Listeners
+        flashcard.addEventListener('click', toggleFlip);
+        nextBtn.addEventListener('click', nextCard);
+        prevBtn.addEventListener('click', prevCard);
+        
+        menuButton.addEventListener('click', function() {
                 window.location.href = '/';
+        });
+        
+        // Keyboard Navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'ArrowRight' || e.code === 'Space') {
+                nextCard();
+            } else if (e.code === 'ArrowLeft') {
+                prevCard();
+            } else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+                toggleFlip();
             }
+        });
+        
+        // Initialize
+        if (cards.length > 0) {
+            displayCard(currentIndex);
+        } else {
+            cardFront.textContent = "Aucune carte disponible";
+            cardBack.textContent = "Veuillez revenir au menu et choisir un autre thème";
         }
     </script>
 </body>

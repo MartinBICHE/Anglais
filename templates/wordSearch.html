@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mot Mêlé</title>
+    <title>Word Search Puzzle - EduPlay</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/wordSearch.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-    <button id="menuButton" onclick="confirmReturnToMenu()">⬅ Menu</button>
-    <h1>Word Search Puzzle</h1>
-    <div id="grid-container">
-        <div id="puzzle">{{ mot_mele | safe}}</div>
+    <!-- Menu Button -->
+    <button id="menuButton" class="menu-button" onclick="confirmReturnToMenu()">
+        ←
+    </button>
     
+    <h1>Word Search Puzzle</h1>
+    
+    <div id="grid-container">
+        <!-- Puzzle Grid -->
+        <div id="puzzle">{{ mot_mele | safe}}</div>
+        
+        <!-- Word List -->
         <div class="word-list">
             <ul>
                 {% for word, definition in definitions.items() %}
@@ -25,11 +32,30 @@
         </div>
     </div>
 
+    <!-- Success Modal -->
+    <div class="success-modal" id="successModal">
+        <div class="success-content">
+            <h2 class="success-title">Congratulations! 🎉</h2>
+            <p>You've found all the words!</p>
+            
+            <div class="stats-display">
+                <p>Time: <span id="completionTime">0</span> seconds</p>
+            </div>
+            <div class="success-buttons">
+                <button onclick="window.location.href='/'" class="primary-button">Return to Menu</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Initialize game timer
         window.startTime = Date.now();
         window.theme = "{{ theme }}";
         let selectedWord = "";
+        let foundWords = 0;
+        let totalWords = document.querySelectorAll('input[type="checkbox"]').length;
         
+        // Word selection functionality
         document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', function() {
                 if (this.checked) {
@@ -42,30 +68,36 @@
             });
         });
     
+        // Cell click handling
+        // Dans la fonction où vous gérez les cellules sur lesquelles on clique
         document.querySelectorAll("td").forEach(cell => {
             cell.style.cursor = "pointer"; 
             cell.addEventListener("click", function() {
                 if (!selectedWord) {
                     return;
                 }
-    
+
                 let letter = this.innerText.replace(/\s+/g, "").toUpperCase(); 
-    
+
                 if (letter === selectedWord[0]) {
                     let wordCells = findWordInGrid(this, selectedWord);
                     if (wordCells) {
                         highlightWord(wordCells);
-                        checkForeverWord(selectedWord); 
+                        checkForeverWord(selectedWord);
+                        foundWords++;
                         enableUncheckedCheckboxes(); 
                     } else {
                         triggerShakeEffect();
                         uncheckWord(selectedWord);
+                        enableUncheckedCheckboxes(); // Ajoutez cette ligne
                     }
-    
+
                     selectedWord = "";
                 } else {
                     triggerShakeEffect();
                     uncheckWord(selectedWord);
+                    enableUncheckedCheckboxes(); // Ajoutez cette ligne
+                    selectedWord = "";
                 }
             });
         });
@@ -130,10 +162,17 @@
         }
     
         function highlightWord(cells) {
-            const randomColor = getRandomColor();
+            const randomColor = getRandomHSLColor();
             
-            cells.forEach(cell => {
-                cell.style.backgroundColor = randomColor; 
+            cells.forEach((cell, index) => {
+                setTimeout(() => {
+                    cell.style.backgroundColor = randomColor;
+                    cell.classList.add('found');
+                    
+                    setTimeout(() => {
+                        cell.classList.remove('found');
+                    }, 500);
+                }, index * 50);
             });
         }
     
@@ -141,7 +180,8 @@
             document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                 if (checkbox.getAttribute("data-word").toUpperCase() === word) {
                     checkbox.checked = true;  
-                    checkbox.disabled = true; 
+                    checkbox.disabled = true;
+                    checkbox.parentElement.classList.add('completed');
                 }
             });
             checkAllWordsFound();
@@ -153,6 +193,14 @@
 
             if (allChecked) {
                 let elapsed = (Date.now() - window.startTime) / 1000;
+                document.getElementById('completionTime').textContent = elapsed.toFixed(1);
+                
+                // Show success modal with animation
+                setTimeout(() => {
+                    document.getElementById('successModal').classList.add('active');
+                }, 500);
+                
+                // Update stats
                 fetch('/update_word_search_stats', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -164,11 +212,10 @@
                 })
                 .then(resp => resp.json())
                 .then(data => {
-                    if (data.status === 'success') {
-                        alert("Bravo ! Statistiques enregistrées 🎉");
-                    } else {
-                        alert("Erreur enregistrement stats");
-                    }
+                    console.log("Stats updated:", data);
+                })
+                .catch(error => {
+                    console.error("Error updating stats:", error);
                 });
             }
         }
@@ -181,46 +228,53 @@
             });
         }
     
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
+        function getRandomHSLColor() {
+            // Generate pastel colors that are still visible but not too bright
+            const hue = Math.floor(Math.random() * 360);
+            return `hsl(${hue}, 70%, 80%)`;
         }
     
         function triggerShakeEffect() {
-            document.body.classList.add("shake");
+            document.getElementById('puzzle').classList.add("shake");
             
             setTimeout(() => {
-                document.body.classList.remove("shake");
+                document.getElementById('puzzle').classList.remove("shake");
             }, 500);
         }
 
         function confirmReturnToMenu() {
-            let saveProgress = confirm("Are you sure you want to return to the menu? Your changes will not be saved.");
-            if (saveProgress) {
-                fetch('/clear_word_search_session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                })
-                .then(response => {
-                    if (response.ok) {
-                        window.location.href = '/'; 
-                    } else {
-                        alert("Une erreur est survenue lors de la suppression de la session.");
-                    }
-                })
-                .catch(error => {
-                    alert("Erreur lors de la suppression de la session: " + error);
-                });
+            if (foundWords > 0) {
+                let saveProgress = confirm("Are you sure you want to return to the menu? Your progress will not be saved.");
+                if (saveProgress) {
+                    returnToMenu();
+                }
+            } else {
+                returnToMenu();
             }
         }
-
+        
+        function returnToMenu() {
+            fetch('/clear_word_search_session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/'; 
+                } else {
+                    console.error("Error clearing session");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        }
+        
+        function playAgain() {
+            window.location.reload();
+        }
     </script>
-    
 </body>
 </html>

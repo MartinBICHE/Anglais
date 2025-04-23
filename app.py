@@ -207,11 +207,10 @@ def validate():
         feedback_grid.append(feedback_row)
 
     if all_correct:
-        message = "<h2 style='color: green;'>Congratulations! All answers are correct 🎉</h2>"
-        show_new_grid_button = True
+        flash("Congratulations! You solved the crossword!")
     else:
-        message = "<h2 style='color: red;'>Some answers are incorrect. Try again!</h2>"
-        show_new_grid_button = False
+        flash("There are still some errors, try again.")
+
 
     game_id = session.get('current_game_id')
     user_id = session.get('user_id') or None
@@ -229,7 +228,7 @@ def validate():
         con.commit()
         con.close()
 
-    html_grid = generate_html(grid, user_answers, feedback_grid) if not all_correct else ""
+    html_grid = generate_html(grid, user_answers, feedback_grid)
 
     definitions = get_def_from_db_C(placed_words, theme) 
     definitions_h, definitions_v = {}, {}
@@ -238,14 +237,14 @@ def validate():
         if word in word_directions:
             (definitions_h if word_directions[word] == 'H' else definitions_v)[f"{index}."] = definitions.get(word, "Definition not found")
 
+    
     return render_template(
         "crossword.html",
         crossword=html_grid,
-        message=message,
         definitions_h=definitions_h,
         definitions_v=definitions_v,
-        show_new_grid_button=show_new_grid_button
     )
+
 
 @app.route('/new_grid')
 def new_grid():
@@ -377,7 +376,7 @@ def show_flashcards(theme):
     cur = conn.cursor()
     
     if theme == "all":
-        cur.execute('SELECT word, definition FROM EnglishDatabase ORDER BY RANDOM() LIMIT 45')
+        cur.execute('SELECT word, definition FROM EnglishDatabase ORDER BY RANDOM()')
     else:
         cur.execute('SELECT word, definition FROM EnglishDatabase WHERE theme = ? ORDER BY RANDOM()', (theme,))
     

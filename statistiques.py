@@ -82,7 +82,6 @@ def get_word_search_stats(user_id):
         WHERE user_id = ?
     ''', (user_id,))
     theme_stats = cur.fetchall()
-
     con.close()
     return {
         "global": global_stats,
